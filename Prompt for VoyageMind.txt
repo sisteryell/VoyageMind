@@ -1,0 +1,196 @@
+## You are a senior AI engineer helping me build an agentic AI project.
+Your job is to design clean, modular, production-grade code while keeping things simple,
+readable, and fun to iterate on.
+
+────────────────────────
+PROJECT OVERVIEW
+────────────────────────
+I am building an agentic AI travel planner.
+
+The user provides a country name they want to visit as a tourist.
+Multiple specialized AI agents collaborate to recommend the best cities to visit.
+
+The system exposes:
+1. A programmatic API (FastAPI)
+2. A simple web UI for interactive use
+
+────────────────────────
+TECH STACK (MANDATORY)
+────────────────────────
+- Python 3.11+
+- OpenAI API (chat completions)
+- Pydantic (strict schemas & validation)
+- Jinja2 (prompt templating and final synthesis)
+- Langfuse (observability, tracing, sessions, logging)
+- FastAPI (web API + UI backend)
+- Jinja2 OR minimal HTML templates for UI
+- Environment variables for secrets
+- Singleton Design Pattern where applicable
+
+────────────────────────
+HIGH-LEVEL ARCHITECTURE
+────────────────────────
+agents/
+  ├── base.py
+  ├── history_culture.py
+  ├── food_cuisine.py
+  ├── transportation.py
+  └── aggregator.py
+
+schemas/
+  ├── city_recommendation.py
+  └── final_recommendation.py
+
+prompts/
+  ├── history_culture.jinja
+  ├── food_cuisine.jinja
+  ├── transportation.jinja
+  └── aggregator.jinja
+
+services/
+  ├── openai_client.py
+  ├── langfuse_client.py
+  └── config.py
+
+web/
+  ├── main.py        # FastAPI app
+  ├── routes.py
+  └── templates/
+        └── index.html
+
+────────────────────────
+SINGLETON DESIGN REQUIREMENTS (CRITICAL)
+────────────────────────
+Use the Singleton pattern for:
+- OpenAI client
+- Langfuse client
+- App configuration loader
+
+Rules:
+- Only ONE instance per process
+- Lazy initialization
+- Thread-safe where reasonable
+- Explicit, readable logic
+- No naked globals (must be wrapped in classes)
+
+────────────────────────
+AGENTS OVERVIEW
+────────────────────────
+
+All agents:
+- Use OpenAI Chat Completions
+- Have a SYSTEM PROMPT
+- Use Jinja2 templates
+- Return STRICT JSON
+- Are validated using Pydantic
+- Fail fast on malformed output
+
+────────────────────────
+AGENT 1: HISTORY & CULTURE AGENT
+────────────────────────
+Responsibility:
+Given a country name, identify the TOP 3 cities to visit based on:
+- History
+- Cultural importance
+- Tourist attractions
+
+STRICT JSON OUTPUT:
+[
+  {
+    "city": "<city_name>",
+    "confidence_score": <float between 0 and 1>,
+    "reason": "<brief explanation>"
+  }
+]
+
+Rules:
+- Exactly 3 cities
+- Valid JSON only
+- No extra text
+
+────────────────────────
+AGENT 2: FOOD & CUISINE AGENT
+────────────────────────
+Responsibility:
+Given the same country, identify the TOP 3 cities based on:
+- Local cuisine
+- Street food
+- Culinary reputation
+
+Same JSON schema as Agent 1
+
+────────────────────────
+AGENT 3: TRANSPORTATION & CONNECTIVITY AGENT
+────────────────────────
+Responsibility:
+Given the same country, identify the TOP 3 cities based on:
+- Airport connectivity
+- Public transportation
+- Tourist mobility
+
+Same JSON schema as Agent 1
+
+────────────────────────
+FINAL AGENT: AGGREGATOR & DECISION MAKER
+────────────────────────
+Responsibility:
+- Consume validated outputs from all 3 agents
+- Use a Jinja2 prompt to reason over combined data
+- Select the TOP 2 cities overall
+- Provide a short justification for each
+
+Decision rules:
+- Cities appearing across multiple agents are favored
+- Confidence scores influence ranking
+- Balance experience + accessibility
+
+STRICT FINAL JSON OUTPUT:
+[
+  {
+    "city": "<city_name>",
+    "reason": "<final justification>"
+  }
+]
+
+────────────────────────
+FASTAPI WEB UI REQUIREMENTS
+────────────────────────
+The project must expose a minimal interactive web UI:
+
+- Route: GET /
+  - Renders an HTML page with:
+    - Country name input
+    - Submit button
+    - Loading state
+    - Display final recommended cities
+
+- Route: POST /plan
+  - Accepts JSON: { "country": "<name>" }
+  - Runs all agents
+  - Returns final aggregated JSON
+
+UI Goals:
+- No frontend framework required
+- Plain HTML + minimal JS is fine
+- Clean, readable templates
+- UX is simple but friendly
+
+────────────────────────
+ENGINEERING REQUIREMENTS
+────────────────────────
+- Pydantic models for ALL agent outputs
+- Centralized OpenAI client (Singleton)
+- Centralized Langfuse client (Singleton)
+- Jinja2 templates for all prompts
+- Async-ready design (async FastAPI routes, async OpenAI calls)
+- Clear separation of concerns
+- Easy to add more agents later
+
+────────────────────────
+STYLE & VIBE
+────────────────────────
+- Clean, expressive Python
+- Favor clarity over cleverness
+- Minimal magic
+- Explicit > implicit
+- Easy to debug, easy to extend

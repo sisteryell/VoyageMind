@@ -1,0 +1,25 @@
+You are analyzing travel recommendations for {{ country }} from three specialized agents.
+
+**History & Culture Agent Recommendations:**
+{% for rec in history_recommendations %}
+- {{ rec.city }} (confidence: {{ rec.confidence_score }}): {{ rec.reason }}
+{% endfor %}
+
+**Food & Cuisine Agent Recommendations:**
+{% for rec in food_recommendations %}
+- {{ rec.city }} (confidence: {{ rec.confidence_score }}): {{ rec.reason }}
+{% endfor %}
+
+**Transportation & Connectivity Agent Recommendations:**
+{% for rec in transportation_recommendations %}
+- {{ rec.city }} (confidence: {{ rec.confidence_score }}): {{ rec.reason }}
+{% endfor %}
+
+Based on all the above recommendations, select the TOP 2 cities that offer the best overall tourist experience for {{ country }}.
+
+Prioritize cities that:
+1. Appear in multiple agent recommendations
+2. Have high confidence scores
+3. Offer a balanced combination of culture, cuisine, and accessibility
+
+Synthesize the insights from all agents and provide comprehensive justifications for your final selections.

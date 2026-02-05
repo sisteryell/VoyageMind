@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoyageMind - AI Travel Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .result-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .result-header h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .result-header p {
+            color: #666;
+        }
+        
+        .recommendation {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .recommendation h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .recommendation p {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .agent-details {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .agent-details h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .agent-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .agent-section h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .agent-city {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .agent-city strong {
+            color: #333;
+        }
+        
+        .confidence {
+            color: #764ba2;
+            font-weight: 600;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #c33;
+            display: none;
+        }
+        
+        .error.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 VoyageMind</h1>
+            <p>Discover the Best Cities with AI-Powered Travel Planning</p>
+            <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;" id="sessionInfo"></p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <label for="country">Which country do you want to visit?</label>
+                <input type="text" id="country" placeholder="e.g., Japan, France, Brazil..." />
+            </div>
+            
+            <button id="planButton" onclick="planTravel()">Plan My Trip 🚀</button>
+            
+            <div class="error" id="error"></div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Our AI agents are analyzing the best destinations for you...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="result-header">
+                    <h2>🎯 Top Recommendations for <span id="countryName"></span></h2>
+                    <p>Based on analysis from our specialized AI agents</p>
+                </div>
+                
+                <div id="recommendations"></div>
+                
+                <div class="agent-details">
+                    <h3>📊 Detailed Agent Analysis</h3>
+                    <div id="agentDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Store session ID across requests
+        let currentSessionId = null;
+        
+        async function planTravel() {
+            const country = document.getElementById('country').value.trim();
+            const button = document.getElementById('planButton');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const error = document.getElementById('error');
+            
+            // Reset UI
+            error.classList.remove('active');
+            results.classList.remove('active');
+            
+            // Validation
+            if (!country) {
+                error.textContent = 'Please enter a country name';
+                error.classList.add('active');
+                return;
+            }
+            
+            // Show loading
+            button.disabled = true;
+            loading.classList.add('active');
+            
+            try {
+                const response = await fetch('/plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        country: country,
+                        session_id: currentSessionId  // Use existing session or create new
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to plan travel');
+                }
+                
+                const data = await response.json();
+                
+                // Store session ID for subsequent requests
+                currentSessionId = data.session_id;
+                document.getElementById('sessionInfo').textContent = `Session: ${currentSessionId}`;
+                
+                displayResults(data);
+                
+            } catch (err) {
+                error.textContent = `Error: ${err.message}`;
+                error.classList.add('active');
+            } finally {
+                button.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+        
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            const countryName = document.getElementById('countryName');
+            const recommendations = document.getElementById('recommendations');
+            const agentDetails = document.getElementById('agentDetails');
+            
+            countryName.textContent = data.country;
+            
+            // Display final recommendations
+            recommendations.innerHTML = data.recommendations.map((rec, index) => `
+                <div class="recommendation">
+                    <h3>${index + 1}. ${rec.city}</h3>
+                    <p>${rec.reason}</p>
+                </div>
+            `).join('');
+            
+            // Display agent details
+            const agentSections = [
+                { name: 'History & Culture', key: 'history_culture', icon: '🏛️' },
+                { name: 'Food & Cuisine', key: 'food_cuisine', icon: '🍜' },
+                { name: 'Transportation', key: 'transportation', icon: '✈️' }
+            ];
+            
+            agentDetails.innerHTML = agentSections.map(agent => {
+                const agentData = data.agent_details[agent.key];
+                return `
+                    <div class="agent-section">
+                        <h4>${agent.icon} ${agent.name} Agent</h4>
+                        ${agentData.map(city => `
+                            <div class="agent-city">
+                                <strong>${city.city}</strong>
+                                <span class="confidence">(${(city.confidence_score * 100).toFixed(0)}% confidence)</span>
+                                <br>
+                                <small>${city.reason}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+            
+            results.classList.add('active');
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('country').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                planTravel();
+            }
+        });
+    </script>
+</body>
+</html>

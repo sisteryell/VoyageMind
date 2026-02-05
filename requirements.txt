@@ -1,0 +1,24 @@
+# VoyageMind Dependencies
+
+# Core Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+
+# OpenAI
+openai==1.51.0
+
+# Observability
+langfuse==2.50.2
+
+# Data Validation
+pydantic==2.9.0
+pydantic-settings==2.5.0
+
+# Templating
+jinja2==3.1.4
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# ASGI Server
+httpx==0.27.0
