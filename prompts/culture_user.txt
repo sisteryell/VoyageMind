@@ -1,0 +1,37 @@
+Recommend the TOP 3 cities in {{ country }} for a culture-focused traveler.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'culture' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Recommend cities with free or very cheap cultural access: free museums, open-air heritage, public festivals, free walking tours.
+  - Avoid cities where the main cultural experiences require expensive tickets or reservations.
+{% elif budget == 'luxury' %}
+  - Favor cities with exclusive cultural offerings: private gallery tours, VIP performing arts, heritage luxury hotels, premium workshops.
+  - Cities with Michelin-starred restaurants in historic settings are a plus.
+{% else %}
+  - Cities with a balanced mix of paid and free cultural experiences. Mid-range cultural hotels and guided tours.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend cities with compact, walkable cultural districts — museum rows, art quarters, historic old towns.
+  - A solo weekend of culture should feel complete, not rushed.
+{% elif duration >= 8 %}
+  - Include lesser-known cultural towns, artist communities, or festival cities that reward deep immersion.
+  - Secondary cities with authentic local traditions rather than only the capital's tourist museums.
+{% endif %}
+
+{% if travel_styles %}
+Style-specific adjustments:
+{% if 'food' in travel_styles %}  - Weight cities where food culture is inseparable from cultural heritage (traditional markets, heritage restaurants).{% endif %}
+{% if 'nature' in travel_styles %}  - Include cities where culture and landscape merge: cultural parks, sacred natural sites, agricultural heritage.{% endif %}
+{% if 'relaxation' in travel_styles %}  - Favor culturally rich but calm towns over overwhelming megacity museum marathons.{% endif %}
+{% if 'adventure' in travel_styles %}  - Include cities with experiential culture: craft workshops, archaeological digs, cultural trekking routes.{% endif %}
+{% if 'family' in travel_styles %}  - Favor cities with interactive, child-friendly cultural experiences.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect cultural richness AND suitability for this traveler's budget ({{ budget }}) and duration ({{ duration }} days).

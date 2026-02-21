@@ -10,8 +10,10 @@ Endpoints:
 
 Flow for POST /plan:
   1. Receive country, budget, duration, travel_styles from the client.
-  2. Run 3 specialist agents IN PARALLEL (history, food, transport).
-  3. Feed all 3 results into the aggregator agent → top 2 cities.
+  2. Dynamically create one StyleAgent per selected travel style (or a
+     single "general" agent when no styles are selected) and run them
+     IN PARALLEL.
+  3. Feed all agent results into the aggregator agent → top 2 cities.
   4. Run 2 itinerary agents IN PARALLEL (one per top city).
   5. Return everything to the client.
 
@@ -30,10 +32,8 @@ from langfuse.decorators import langfuse_context, observe
 from agents import (
     AggregatorAgent,
     ChatAgent,
-    FoodCuisineAgent,
-    HistoryCultureAgent,
     ItineraryAgent,
-    TransportationAgent,
+    StyleAgent,
 )
 from middleware import limiter
 from schemas import (
@@ -66,14 +66,15 @@ async def _run_plan(
 ) -> dict:
     """
     Full planning pipeline for one country:
-      1. Three specialist agents run in parallel
-      2. Aggregator picks top 2 cities
+      1. One StyleAgent per selected travel style runs in parallel
+         (falls back to a single "general" agent if nothing selected)
+      2. Aggregator picks top 2 cities from all agent outputs
       3. Itinerary agents generate day-by-day plans for each top city
 
     This is a helper function — not an endpoint itself.
     Both /plan and /compare call it.
     """
-    # Shared kwargs passed to every specialist agent prompt template
+    # Shared kwargs passed to every agent prompt template
     agent_kwargs = dict(
         country=country,
         budget=budget,
@@ -82,19 +83,25 @@ async def _run_plan(
         session_id=session_id,
     )
 
-    # Step 1: run all three specialist agents AT THE SAME TIME
-    history_result, food_result, transport_result = await asyncio.gather(
-        HistoryCultureAgent().run(**agent_kwargs),
-        FoodCuisineAgent().run(**agent_kwargs),
-        TransportationAgent().run(**agent_kwargs),
+    # Decide which styles to run agents for
+    styles_to_run = list(travel_styles) if travel_styles else ["general"]
+
+    # Step 1: run one StyleAgent per selected travel style IN PARALLEL
+    style_results = await asyncio.gather(
+        *(StyleAgent(style).run(**agent_kwargs) for style in styles_to_run)
     )
 
+    # Build a dict mapping style→recommendations (used by aggregator & response)
+    agent_details: dict[str, list] = {}
+    for style, result in zip(styles_to_run, style_results):
+        agent_details[style] = result["recommendations"]
+
     # Step 2: aggregator picks the best overall top-2 cities
+    # Pass all agent results as a single dict so the aggregator prompt
+    # can iterate over any number of agents
     final_result = await AggregatorAgent().run(
         **agent_kwargs,
-        history_recommendations=history_result["recommendations"],
-        food_recommendations=food_result["recommendations"],
-        transportation_recommendations=transport_result["recommendations"],
+        agent_results=agent_details,
     )
 
     # Step 3: generate a day-by-day itinerary for each top city (in parallel)
@@ -126,11 +133,7 @@ async def _run_plan(
         "travel_styles": travel_styles,
         "recommendations": final_result["recommendations"],
         "itineraries": itineraries,
-        "agent_details": {
-            "history_culture": history_result["recommendations"],
-            "food_cuisine":    food_result["recommendations"],
-            "transportation":  transport_result["recommendations"],
-        },
+        "agent_details": agent_details,
     }
 
 

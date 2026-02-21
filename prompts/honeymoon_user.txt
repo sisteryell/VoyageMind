@@ -1,0 +1,37 @@
+Recommend the TOP 3 cities in {{ country }} for a couple on a romantic trip or honeymoon.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'honeymoon' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Recommend cities with free romantic experiences: scenic walks, sunset viewpoints, public gardens, affordable candlelit eateries.
+  - Avoid cities where romance requires expensive resort bookings or high-end reservations.
+{% elif budget == 'luxury' %}
+  - Favor cities with world-class romantic resorts, private villas, overwater bungalows, exclusive dining, couple's spa treatments.
+  - Privacy and exclusivity are key — avoid crowded backpacker towns.
+{% else %}
+  - Cities with charming boutique hotels, moderate-priced romantic restaurants, and scenic settings.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend intimate, compact cities or towns — walkable old quarters, scenic coastal villages, scenic city escapes.
+  - No remote island destinations requiring a full day of travel.
+{% elif duration >= 8 %}
+  - Include remote romantic destinations: secluded islands, multi-stop honeymoon circuits, extended luxury resort stays.
+  - Slow, intimate exploration of lesser-known romantic towns is ideal.
+{% endif %}
+
+{% if travel_styles %}
+Style-specific adjustments:
+{% if 'relaxation' in travel_styles %}  - Prioritize peace, spas, and scenic beauty. Avoid bustling tourist cities.{% endif %}
+{% if 'adventure' in travel_styles %}  - Include romantic adventure options: scenic treks, private sailing, couple's diving or snorkeling.{% endif %}
+{% if 'food' in travel_styles %}  - Favor cities famous for romantic dining: wine regions, fine dining towns, culinary capital cities.{% endif %}
+{% if 'nature' in travel_styles %}  - Weight cities with stunning natural scenery: coastlines, mountains, lakes, waterfalls.{% endif %}
+{% if 'culture' in travel_styles %}  - Include cities with romantic cultural atmosphere: historic old towns, art cities, heritage sites.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect romantic suitability for THIS couple's budget ({{ budget }}) and duration ({{ duration }} days) — not just how popular the city is for tourism.
