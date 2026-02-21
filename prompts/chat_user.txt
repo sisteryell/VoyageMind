@@ -1,0 +1,14 @@
+Travel context:
+- Country: {{ country }}
+- Budget: {{ budget }}
+- Duration: {{ duration }} days
+- Travel preferences: {{ travel_styles | join(', ') if travel_styles else 'General tourism' }}
+
+{% if recommendations %}
+Recommended cities:
+{% for rec in recommendations %}
+- {{ rec.city }}: {{ rec.reason }}
+{% endfor %}
+{% endif %}
+
+User question: {{ question }}
