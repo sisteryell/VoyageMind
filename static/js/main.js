@@ -11,6 +11,11 @@
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    /** Strip any leading non-letter/non-digit characters the LLM sometimes adds (•, â€¢, -, *, etc.) */
+    function cleanActivity(s) {
+      return String(s ?? '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+    }
+
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -40,27 +45,52 @@
         .map(c => c.dataset.style);
     }
 
-    /*  step animation  */
-    const STEP_MSGS = [
-      'Analysing history & culture\u2026',
-      'Exploring culinary scene\u2026',
-      'Evaluating transport links\u2026',
-      'Aggregating final picks\u2026',
-      'Building itineraries\u2026',
-    ];
+    /* style metadata — icon, label, colour for each travel style */
+    const STYLE_META = {
+      adventure:  { icon: '&#127956;', label: 'Adventure',  color: '#f472b6' },
+      relaxation: { icon: '&#127796;', label: 'Relaxation', color: '#34d399' },
+      family:     { icon: '&#128106;', label: 'Family',     color: '#fbbf24' },
+      honeymoon:  { icon: '&#128152;', label: 'Honeymoon',  color: '#f87171' },
+      solo:       { icon: '&#128694;', label: 'Solo',       color: '#60a5fa' },
+      culture:    { icon: '&#127963;', label: 'Culture',    color: '#a78bfa' },
+      food:       { icon: '&#127836;', label: 'Food',       color: '#fb923c' },
+      nature:     { icon: '&#127807;', label: 'Nature',     color: '#4ade80' },
+      general:    { icon: '&#127760;', label: 'General',    color: '#94a3b8' },
+    };
+
+    /*  step animation — builds pills dynamically from selected styles  */
     let _stepTimer = null;
     function startSteps() {
-      const pills = document.querySelectorAll('#loadingState .step-pill');
-      const txt   = document.getElementById('loadingText');
-      pills.forEach(p => p.className = 'step-pill');
+      const container = document.getElementById('stepPills');
+      const txt       = document.getElementById('loadingText');
+
+      // Determine which styles the user picked (fallback to "general")
+      const styles = getStyles('styleChips');
+      const agentStyles = styles.length ? styles : ['general'];
+
+      // Build the step pill list: one per style + aggregate + itinerary
+      const steps = agentStyles.map(s => {
+        const m = STYLE_META[s] || STYLE_META.general;
+        return { icon: m.icon, label: m.label, msg: `Analysing ${m.label.toLowerCase()}\u2026` };
+      });
+      steps.push({ icon: '&#127919;', label: 'Aggregate', msg: 'Aggregating final picks\u2026' });
+      steps.push({ icon: '&#128197;', label: 'Itinerary', msg: 'Building itineraries\u2026' });
+
+      // Render pills
+      container.innerHTML = steps.map((s, i) =>
+        `<span class="step-pill" data-step="${i}">${s.icon} ${s.label}</span>`
+      ).join('');
+
+      const pills = container.querySelectorAll('.step-pill');
       if (pills[0]) pills[0].classList.add('active');
-      txt.textContent = STEP_MSGS[0];
+      txt.textContent = steps[0].msg;
+
       let i = 1;
       _stepTimer = setInterval(() => {
         if (i < pills.length) {
-          pills[i - 1].classList.replace('active','done');
+          pills[i - 1].classList.replace('active', 'done');
           pills[i].classList.add('active');
-          txt.textContent = STEP_MSGS[i];
+          txt.textContent = steps[i].msg;
           i++;
         } else {
           clearInterval(_stepTimer);
@@ -143,7 +173,7 @@
                     <div class="day-card">
                       <div class="day-title">Day ${d.day}: ${esc(d.title)}</div>
                       <ul class="day-activities">
-                        ${(d.activities||[]).map(a => `<li>${esc(a)}</li>`).join('')}
+                        ${(d.activities||[]).map(a => `<li>${esc(cleanActivity(a))}</li>`).join('')}
                       </ul>
                     </div>`).join('')}
                 </div>
@@ -153,41 +183,42 @@
         iSec.innerHTML = '';
       }
 
-      // agent breakdown
-      const AGENTS = [
-        { key: 'history_culture', icon: '&#127963;', label: 'History & Culture', color: '#a78bfa' },
-        { key: 'food_cuisine',    icon: '&#127836;', label: 'Food & Cuisine',    color: '#fb923c' },
-        { key: 'transportation',  icon: '&#9992;',   label: 'Transportation',    color: '#38bdf8' },
-      ];
+      // agent breakdown — dynamic based on agent_details keys
       const dSec = document.getElementById('detailsSection');
-      dSec.innerHTML = '<h3>&#128202; Agent Breakdown</h3>' +
-        AGENTS.map(a => {
-          const cities = (data.agent_details?.[a.key] || []);
-          return `
-            <div class="agent-panel open">
-              <div class="agent-header" onclick="this.parentElement.classList.toggle('open')">
-                <span class="agent-icon">${a.icon}</span>
-                <span class="agent-title">${a.label}</span>
-                <span class="chevron">&#9660;</span>
-              </div>
-              <div class="agent-body">
-                <div class="agent-body-inner">
-                  ${cities.map(c => {
-                    const pct = Math.round(c.confidence_score * 100);
-                    return `
-                      <div class="city-row">
-                        <span class="city-name">${esc(c.city)}</span>
-                        <div class="confidence-bar-wrapper">
-                          <div class="confidence-bar" style="width:${pct}%;background:${a.color}"></div>
-                        </div>
-                        <span class="confidence-label">${pct}%</span>
-                        <span class="city-reason">${esc(c.reason)}</span>
-                      </div>`;
-                  }).join('')}
+      const agentKeys = Object.keys(data.agent_details || {});
+      if (agentKeys.length) {
+        dSec.innerHTML = '<h3>&#128202; Agent Breakdown</h3>' +
+          agentKeys.map(key => {
+            const meta   = STYLE_META[key] || STYLE_META.general;
+            const cities = data.agent_details[key] || [];
+            return `
+              <div class="agent-panel open">
+                <div class="agent-header" onclick="this.parentElement.classList.toggle('open')">
+                  <span class="agent-icon">${meta.icon}</span>
+                  <span class="agent-title">${meta.label}</span>
+                  <span class="chevron">&#9660;</span>
                 </div>
-              </div>
-            </div>`;
-        }).join('');
+                <div class="agent-body">
+                  <div class="agent-body-inner">
+                    ${cities.map(c => {
+                      const pct = Math.round(c.confidence_score * 100);
+                      return `
+                        <div class="city-row">
+                          <span class="city-name">${esc(c.city)}</span>
+                          <div class="confidence-bar-wrapper">
+                            <div class="confidence-bar" style="width:${pct}%;background:${meta.color}"></div>
+                          </div>
+                          <span class="confidence-label">${pct}%</span>
+                          <span class="city-reason">${esc(c.reason)}</span>
+                        </div>`;
+                    }).join('')}
+                  </div>
+                </div>
+              </div>`;
+          }).join('');
+      } else {
+        dSec.innerHTML = '';
+      }
 
       document.getElementById('resultsSection').classList.add('visible');
       document.getElementById('chatSection').classList.add('visible');
@@ -292,7 +323,7 @@
             ${(it.days||[]).map(d => `
               <div class="compare-itin-day">
                 <strong>Day ${d.day}: ${esc(d.title)}</strong>
-                <ul>${(d.activities||[]).map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+                <ul>${(d.activities||[]).map(a => `<li>${esc(cleanActivity(a))}</li>`).join('')}</ul>
               </div>`).join('')}`).join('')}
         </div>`;
 

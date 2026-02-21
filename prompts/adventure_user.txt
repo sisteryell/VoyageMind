@@ -1,0 +1,37 @@
+Recommend the TOP 3 cities in {{ country }} for an adventure-focused traveler.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'adventure' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities where adventure activities are free or very cheap (public trails, free camping, river access).
+  - Avoid cities where the main outdoor activities require expensive permits, private guides, or luxury equipment.
+{% elif budget == 'luxury' %}
+  - Favor cities with premium adventure operators, private guides, luxury eco-lodges, and exclusive access to parks or reserves.
+  - High-end wellness recovery (spas, thermal baths) near adventure base camps is a plus.
+{% else %}
+  - Standard adventure hubs with affordable guided tours, mid-range lodges, and accessible outdoor activities.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend cities where adventure starts at the doorstep — no long travel days needed.
+  - Multi-day treks or remote expeditions are NOT suitable. Day hikes, water sports, and half-day excursions only.
+{% elif duration >= 8 %}
+  - Include remote or hard-to-reach adventure destinations that reward longer stays.
+  - Multi-day treks, expedition-style adventures, and off-the-beaten-path bases are excellent.
+{% endif %}
+
+{% if travel_styles %}
+Style-specific adjustments:
+{% if 'nature' in travel_styles %}  - Prioritize cities in or near national parks, marine reserves, or wilderness areas.{% endif %}
+{% if 'family' in travel_styles %}  - Favor cities with safe, family-friendly adventure: easy hikes, snorkeling, wildlife watching.{% endif %}
+{% if 'relaxation' in travel_styles %}  - Balance high-adrenaline with recovery — cities near hot springs, beaches, or spas are preferred.{% endif %}
+{% if 'food' in travel_styles %}  - Weight cities where adventure culture meets strong local culinary traditions.{% endif %}
+{% if 'culture' in travel_styles %}  - Include cities where adventure intersects with cultural heritage (archaeological treks, indigenous guides).{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how famous the city is for adventure in general.

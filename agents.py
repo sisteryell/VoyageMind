@@ -9,14 +9,19 @@ How it works:
        - Filling in the template variables (e.g. {{ country }}, {{ budget }})
        - Calling the OpenAI API
        - Parsing and validating the JSON response
-  3. Specialist agents only need to declare WHAT files and schema they use.
+  3. StyleAgent is a dynamic agent — instantiated with a style name
+     (e.g. "adventure", "food"), and it loads the matching prompt files
+     ({style}_system.txt, {style}_user.txt) at runtime. When no styles
+     are selected, a "general" agent is used as the fallback.
   4. ItineraryAgent generates day-by-day plans for recommended cities.
   5. ChatAgent answers free-form follow-up questions (returns plain text,
      not JSON — so it overrides run() to skip JSON parsing).
 
 Prompt files live in the /prompts folder:
-  - *_system.txt  — tells the AI what role it is playing
-  - *_user.txt    — the actual question sent to the AI (uses Jinja2 templating)
+  - {style}_system.txt  — tells the AI what role it is playing
+  - {style}_user.txt    — the actual question sent to the AI (Jinja2 templating)
+  - Supported styles: adventure, relaxation, family, honeymoon, solo,
+    culture, food, nature, general
 """
 import json
 import logging
@@ -143,31 +148,31 @@ class Agent:
 
 
 # ---------------------------------------------------------------------------
-# Specialist agents — each is just 4 lines, everything else is in Agent above
+# Dynamic style agent — replaces all hardcoded specialist agents
 # ---------------------------------------------------------------------------
 
-class HistoryCultureAgent(Agent):
-    """Recommends cities based on historical and cultural significance."""
-    name = "HistoryCulture"
-    prompt_template = "history_culture_user.txt"
-    system_prompt_file = "history_culture_system.txt"
+# All styles whose prompt files exist in /prompts
+VALID_AGENT_STYLES = (
+    "adventure", "relaxation", "family", "honeymoon",
+    "solo", "culture", "food", "nature", "general",
+)
+
+
+class StyleAgent(Agent):
+    """
+    A dynamic specialist agent.  Given a travel-style name (e.g. "adventure"),
+    it loads {style}_system.txt and {style}_user.txt from /prompts at runtime.
+    When no styles are selected by the user, pass style_name="general".
+    """
     schema = CityRecommendationList
 
-
-class FoodCuisineAgent(Agent):
-    """Recommends cities based on food culture and culinary experiences."""
-    name = "FoodCuisine"
-    prompt_template = "food_cuisine_user.txt"
-    system_prompt_file = "food_cuisine_system.txt"
-    schema = CityRecommendationList
-
-
-class TransportationAgent(Agent):
-    """Recommends cities based on transport links and ease of access."""
-    name = "Transportation"
-    prompt_template = "transportation_user.txt"
-    system_prompt_file = "transportation_system.txt"
-    schema = CityRecommendationList
+    def __init__(self, style_name: str) -> None:
+        if style_name not in VALID_AGENT_STYLES:
+            raise ValueError(f"Unknown style '{style_name}'. Must be one of {VALID_AGENT_STYLES}")
+        self.name = style_name.replace("_", " ").title()
+        self.prompt_template = f"{style_name}_user.txt"
+        self.system_prompt_file = f"{style_name}_system.txt"
+        super().__init__()
 
 
 class AggregatorAgent(Agent):
