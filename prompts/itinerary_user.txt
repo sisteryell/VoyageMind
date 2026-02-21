@@ -1,0 +1,33 @@
+Create a {{ duration }}-day travel itinerary for {{ city }}, {{ country }}.
+
+Traveler constraints — EVERY activity must respect these:
+- Budget: {{ budget }}
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'general tourism' }}
+
+This city was recommended because: {{ reason }}
+
+Budget guidance:
+{% if budget == 'budget' %}
+  - Activities must be free or very low cost. Use free museum days, public parks, street food, local markets, and self-guided walks.
+  - Clearly note when an activity is free.
+  - No private tours, Michelin restaurants, or paid transfers unless they cost under a few dollars.
+{% elif budget == 'luxury' %}
+  - Prioritize premium, exclusive, or private experiences: private guided tours, fine dining (include restaurant names where known), rooftop bars, spa days, VIP site access.
+  - At least one luxury experience per day.
+{% else %}
+  - Mix of free and paid attractions. Mid-range restaurants. One or two quality experiences per day without breaking the bank.
+{% endif %}
+
+Travel style guidance:
+{% if travel_styles %}
+{% if 'adventure' in travel_styles %}  - Include at least one active/outdoor activity per day (hiking, cycling, kayaking, climbing, etc.).{% endif %}
+{% if 'relaxation' in travel_styles %}  - Keep the pace slow. Allow for leisurely mornings, café stops, and unhurried evenings. No jam-packed schedules.{% endif %}
+{% if 'honeymoon' in travel_styles %}  - Add romantic touches: sunset viewpoints, candlelit dinners, couples' spa. Avoid busy/chaotic spots.{% endif %}
+{% if 'family' in travel_styles %}  - Include child-friendly venues. Avoid late-night-only food spots. Keep walking distances manageable.{% endif %}
+{% if 'solo' in travel_styles %}  - Include social venues (communal dining, hostel bars, group walking tours). Note solo-friendly options.{% endif %}
+{% if 'culture' in travel_styles %}  - Include local performances, craft workshops, art galleries, or traditional neighbourhood visits.{% endif %}
+{% if 'food' in travel_styles %}  - Dedicate at least one activity per day specifically to a food experience (market tour, street food walk, cooking class, food neighbourhood).{% endif %}
+{% if 'nature' in travel_styles %}  - Include at least one day trip or activity in a natural setting (park, beach, river, viewpoint, botanical garden).{% endif %}
+{% endif %}
+
+Make the day titles descriptive and specific to the actual activities planned (not generic like "Day 1: Exploration").

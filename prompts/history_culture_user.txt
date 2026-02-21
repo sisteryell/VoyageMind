@@ -1,0 +1,38 @@
+Recommend the TOP 3 cities in {{ country }} for a traveler focused on history and culture.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'general sightseeing' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities where most historic sites are free or very cheap to enter.
+  - Avoid cities where the main attractions are dominated by expensive private tours or high entry fees.
+  - Favor cities with a thriving free walking-tour culture.
+{% elif budget == 'luxury' %}
+  - Favor cities with exclusive heritage experiences: private after-hours museum access, premium guided tours, upscale historic hotels.
+  - Smaller, refined, less-crowded historic destinations are preferred over overcrowded tourist centres.
+{% else %}
+  - Standard mix of paid attractions and free sights. Mid-range accommodation available near historic districts.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend compact, walkable cities where the top historic sites are within close proximity of each other.
+  - Do NOT recommend cities where the key sights are spread across a wide area requiring multi-day exploration.
+{% elif duration >= 8 %}
+  - It is appropriate to include lesser-known historic towns or secondary cities that reward slow, immersive visits.
+  - Avoid defaulting only to the obvious top-3 tourist cities.
+{% endif %}
+
+{% if travel_styles %}
+Apply these style adjustments:
+{% if 'adventure' in travel_styles %}  - Prioritize cities with archaeological expeditions, active heritage trails, or adventurous historical settings.{% endif %}
+{% if 'family' in travel_styles %}  - Prioritize cities with interactive, hands-on history museums and open-air sites suitable for children.{% endif %}
+{% if 'relaxation' in travel_styles or 'honeymoon' in travel_styles %}  - Favor scenic, atmospheric, uncrowded historic towns over busy megacity tourist traps.{% endif %}
+{% if 'food' in travel_styles %}  - Weight cities where food history and culinary heritage are part of the cultural experience.{% endif %}
+{% if 'nature' in travel_styles %}  - Weight cities near natural heritage sites or where history and landscape intersect meaningfully.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how historically important the city is in general.
