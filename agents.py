@@ -29,7 +29,6 @@ from pathlib import Path
 from typing import Type
 
 from jinja2 import Environment, FileSystemLoader
-from langfuse.decorators import langfuse_context, observe
 from pydantic import BaseModel
 
 from exceptions import AgentError
@@ -107,7 +106,6 @@ class Agent:
 
     # --- Main run method ---
 
-    @observe()  # @observe() records this call in Langfuse for tracing
     async def run(self, **kwargs: object) -> dict:
         """
         Run the agent end-to-end:
@@ -116,11 +114,8 @@ class Agent:
           3. Parse and validate the JSON response
           4. Return a clean Python dict
         """
-        # session_id is used for Langfuse grouping — remove it from kwargs
-        # before passing the rest to the prompt template
-        session_id = kwargs.pop("session_id", None)
-        if session_id:
-            langfuse_context.update_current_observation(session_id=session_id)
+        # Remove session_id from kwargs before passing to prompt template
+        kwargs.pop("session_id", None)
 
         # OpenAI chat format: a list of messages with roles
         messages = [
@@ -151,37 +146,102 @@ class Agent:
 # Dynamic style agent — replaces all hardcoded specialist agents
 # ---------------------------------------------------------------------------
 
-# All styles whose prompt files exist in /prompts
-VALID_AGENT_STYLES = (
-    "adventure", "relaxation", "family", "honeymoon",
-    "solo", "culture", "food", "nature", "general",
-)
-
-
-class StyleAgent(Agent):
-    """
-    A dynamic specialist agent.  Given a travel-style name (e.g. "adventure"),
-    it loads {style}_system.txt and {style}_user.txt from /prompts at runtime.
-    When no styles are selected by the user, pass style_name="general".
-    """
+class HistoryCultureAgent(Agent):
+    """Recommends cities based on historical and cultural significance."""
+    name = "HistoryCulture"
+    prompt_template = "history_culture/user.txt"
+    system_prompt_file = "history_culture/system.txt"
     schema = CityRecommendationList
 
-    def __init__(self, style_name: str) -> None:
-        if style_name not in VALID_AGENT_STYLES:
-            raise ValueError(f"Unknown style '{style_name}'. Must be one of {VALID_AGENT_STYLES}")
-        self.name = style_name.replace("_", " ").title()
-        self.prompt_template = f"{style_name}_user.txt"
-        self.system_prompt_file = f"{style_name}_system.txt"
-        super().__init__()
+
+class FoodCuisineAgent(Agent):
+    """Recommends cities based on food culture and culinary experiences."""
+    name = "FoodCuisine"
+    prompt_template = "food_cuisine/user.txt"
+    system_prompt_file = "food_cuisine/system.txt"
+    schema = CityRecommendationList
+
+
+class TransportationAgent(Agent):
+    """Recommends cities based on transport links and ease of access."""
+    name = "Transportation"
+    prompt_template = "transportation/user.txt"
+    system_prompt_file = "transportation/system.txt"
+    schema = CityRecommendationList
 
 
 class AggregatorAgent(Agent):
     """Picks the top 2 cities from all specialist agents' combined output."""
     name = "Aggregator"
-    prompt_template = "aggregator_user.txt"
-    system_prompt_file = "aggregator_system.txt"
+    prompt_template = "aggregator/user.txt"
+    system_prompt_file = "aggregator/system.txt"
     schema = FinalRecommendationList
 
+
+class AdventureAgent(Agent):
+    """Recommends cities based on adventure and outdoor activities."""
+    name = "Adventure"
+    prompt_template = "adventure/user.txt"
+    system_prompt_file = "adventure/system.txt"
+    schema = CityRecommendationList
+
+
+class RelaxationAgent(Agent):
+    """Recommends cities based on relaxation and wellness experiences."""
+    name = "Relaxation"
+    prompt_template = "relaxation/user.txt"
+    system_prompt_file = "relaxation/system.txt"
+    schema = CityRecommendationList
+
+
+class FamilyAgent(Agent):
+    """Recommends cities based on family-friendly activities and safety."""
+    name = "Family"
+    prompt_template = "family/user.txt"
+    system_prompt_file = "family/system.txt"
+    schema = CityRecommendationList
+
+
+class HoneymoonAgent(Agent):
+    """Recommends cities based on romance and couple experiences."""
+    name = "Honeymoon"
+    prompt_template = "honeymoon/user.txt"
+    system_prompt_file = "honeymoon/system.txt"
+    schema = CityRecommendationList
+
+
+class SoloAgent(Agent):
+    """Recommends cities based on solo travel infrastructure and safety."""
+    name = "Solo"
+    prompt_template = "solo/user.txt"
+    system_prompt_file = "solo/system.txt"
+    schema = CityRecommendationList
+
+
+class NatureAgent(Agent):
+    """Recommends cities based on natural landscapes and eco-tourism."""
+    name = "Nature"
+    prompt_template = "nature/user.txt"
+    system_prompt_file = "nature/system.txt"
+    schema = CityRecommendationList
+
+
+# ---------------------------------------------------------------------------
+# Travel style → agent mapping
+# Used by routes.py to dynamically select which agents to run
+# based on the travel styles the user chose.
+# ---------------------------------------------------------------------------
+
+TRAVEL_STYLE_AGENT_MAP: dict[str, type[Agent]] = {
+    "adventure":  AdventureAgent,
+    "relaxation": RelaxationAgent,
+    "family":     FamilyAgent,
+    "honeymoon":  HoneymoonAgent,
+    "solo":       SoloAgent,
+    "culture":    HistoryCultureAgent,
+    "food":       FoodCuisineAgent,
+    "nature":     NatureAgent,
+}
 
 # ---------------------------------------------------------------------------
 # New feature agents
@@ -194,8 +254,8 @@ class ItineraryAgent(Agent):
     Uses the Itinerary schema (list of DayPlan objects).
     """
     name = "Itinerary"
-    prompt_template = "itinerary_user.txt"
-    system_prompt_file = "itinerary_system.txt"
+    prompt_template = "itinerary/user.txt"
+    system_prompt_file = "itinerary/system.txt"
     schema = Itinerary
 
 
@@ -206,10 +266,9 @@ class ChatAgent(Agent):
     so we override run() to skip JSON parsing and validation.
     """
     name = "Chat"
-    prompt_template = "chat_user.txt"
-    system_prompt_file = "chat_system.txt"
+    prompt_template = "chat/user.txt"
+    system_prompt_file = "chat/system.txt"
 
-    @observe()
     async def run(self, **kwargs: object) -> dict:
         """
         Chat-specific run:
@@ -217,9 +276,7 @@ class ChatAgent(Agent):
           2. Call OpenAI WITHOUT json_object mode (we want natural text).
           3. Return {"answer": "..."} directly — no JSON parsing needed.
         """
-        session_id = kwargs.pop("session_id", None)
-        if session_id:
-            langfuse_context.update_current_observation(session_id=session_id)
+        kwargs.pop("session_id", None)
 
         messages = [
             {"role": "system", "content": self._load_system_prompt()},

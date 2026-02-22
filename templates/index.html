@@ -13,7 +13,7 @@
   <!-- marked — markdown renderer for chat messages -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/style.css?v=2" />
 </head>
 
 <body>
@@ -78,9 +78,7 @@
 
       <div class="loading-state" id="loadingState">
         <div class="orbit"><span></span><span></span><span></span></div>
-        <div class="steps" id="stepPills">
-          <!-- filled dynamically by JS based on selected travel styles -->
-        </div>
+        <div class="steps" id="stepsContainer"></div>
         <p class="loading-text" id="loadingText">Starting agents&hellip;</p>
       </div>
 
@@ -169,12 +167,13 @@
 
     </div><!-- /#tab-compare -->
 
-    <footer class="footer">VoyageMind &mdash; built with FastAPI, OpenAI &amp; Langfuse</footer>
+    <footer class="footer">VoyageMind &mdash; built with FastAPI &amp; OpenAI</footer>
 
   </div><!-- /.wrapper -->
 
   <div class="toast" id="toast"></div>
 
-  <script src="/static/js/main.js"></script>
+  <script src="/static/js/main.js?v=4"></script>
 </body>
 </html>
+

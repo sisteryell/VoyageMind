@@ -1,0 +1,34 @@
+Recommend the TOP 3 cities in {{ country }} for a family trip with children.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'family' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities where key family attractions are free or very affordable — public parks, beaches, open-air sites, free museums.
+  - Avoid cities dominated by expensive theme parks or paid-entry attractions.
+{% elif budget == 'luxury' %}
+  - Favor cities with premium family experiences: private guided tours, exclusive wildlife encounters, luxury family resorts, and child-friendly fine dining.
+{% else %}
+  - Standard mix of mid-range family attractions and free outdoor spaces suitable for children.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend compact cities where the main family attractions are clustered and reachable without long in-city travel.
+{% elif duration >= 8 %}
+  - Include nature-based or immersive destinations where children can explore slowly and families can settle in comfortably.
+{% endif %}
+
+{% if travel_styles %}
+Apply these style adjustments:
+{% if 'adventure' in travel_styles %}  - Include cities with family-safe adventure options: junior hiking trails, snorkeling, ziplining, or wildlife tracking.{% endif %}
+{% if 'nature' in travel_styles %}  - Prioritize cities near wildlife parks, botanical gardens, or family-friendly natural beaches.{% endif %}
+{% if 'culture' in travel_styles %}  - Favor cities with interactive history museums and hands-on cultural activities suitable for children.{% endif %}
+{% if 'relaxation' in travel_styles %}  - Include beach or resort cities where parents can relax while children are safely entertained.{% endif %}
+{% if 'food' in travel_styles %}  - Weight cities with accessible local food markets and a variety of child-friendly cuisine.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how popular it is as a tourist city in general.

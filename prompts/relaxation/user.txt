@@ -1,0 +1,34 @@
+Recommend the TOP 3 cities in {{ country }} for a traveler focused on relaxation and wellness.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'relaxation' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities where relaxation is accessible without high cost — public beaches, free parks, affordable guesthouses in quiet settings.
+  - Avoid resort towns where everything is priced for luxury tourists.
+{% elif budget == 'luxury' %}
+  - Favor cities with world-class spas, exclusive wellness retreats, private pool villas, or premium thermal bath facilities.
+{% else %}
+  - Standard mix of mid-range wellness options: day spas, comfortable hotels, calm neighborhoods.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend compact, immediately peaceful cities where relaxation begins from arrival — no acclimatisation or long in-city travel needed.
+{% elif duration >= 8 %}
+  - Include slower-paced, lesser-known towns suited for an extended wellness stay or digital detox.
+{% endif %}
+
+{% if travel_styles %}
+Apply these style adjustments:
+{% if 'honeymoon' in travel_styles %}  - Prioritize romantic, atmospheric, intimate destinations with scenic views and private dining options.{% endif %}
+{% if 'nature' in travel_styles %}  - Weight cities near beaches, hot springs, forests, or lakes that provide natural tranquility.{% endif %}
+{% if 'solo' in travel_styles %}  - Favor cities with a safe, welcoming solo-friendly atmosphere, good cafes, and yoga or wellness studios.{% endif %}
+{% if 'culture' in travel_styles %}  - Weight historic spa towns or traditional wellness cities where culture and relaxation intertwine.{% endif %}
+{% if 'food' in travel_styles %}  - Include cities where slow dining, local cuisine, and cafe culture are part of the relaxation experience.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how famous it is as a resort destination in general.

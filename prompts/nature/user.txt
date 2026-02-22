@@ -1,0 +1,34 @@
+Recommend the TOP 3 cities in {{ country }} for a traveler focused on nature and eco-tourism.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'nature' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities that offer free or very affordable access to natural areas — public trails, community-run reserves, affordable eco-guesthouses.
+  - Avoid cities where nature access is gated behind expensive private lodges or high permit fees.
+{% elif budget == 'luxury' %}
+  - Favor cities near exclusive nature experiences: private safari lodges, chartered wildlife tours, luxury treehouses, private island or beach reserve access.
+{% else %}
+  - Standard mix of mid-priced guided nature experiences alongside self-guided trails and affordable nature-facing accommodation.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend cities where the signature natural attraction is immediately accessible — a single national park, beach, lake, or forest trail within easy reach.
+{% elif duration >= 8 %}
+  - Include remote eco-tourism hubs or lesser-visited wild areas that reward extended immersion and slow, multi-ecosystem exploration.
+{% endif %}
+
+{% if travel_styles %}
+Apply these style adjustments:
+{% if 'adventure' in travel_styles %}  - Weight cities where nature access involves physical activity: trekking, diving, kayaking, rock climbing, or multi-day wilderness trails.{% endif %}
+{% if 'relaxation' in travel_styles %}  - Favor tranquil natural settings: peaceful beaches, lakeside or forest retreats where nature provides calm rather than exertion.{% endif %}
+{% if 'family' in travel_styles %}  - Prioritize cities near wildlife parks, botanical gardens, or child-safe natural experiences with educational value.{% endif %}
+{% if 'honeymoon' in travel_styles %}  - Weight scenic, romantic natural settings: secluded beaches, mountain lakes, lush valleys ideal for couples.{% endif %}
+{% if 'culture' in travel_styles %}  - Note cities where indigenous knowledge, local ecology, or cultural connection to the natural environment enriches the nature experience.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how globally famous its natural setting is.

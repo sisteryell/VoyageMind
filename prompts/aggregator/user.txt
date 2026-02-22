@@ -5,14 +5,15 @@ Traveler constraints (HARD REQUIREMENTS — do not ignore these):
 - Trip length: {{ duration }} days
 - Travel styles: {{ travel_styles | join(', ') if travel_styles else 'general tourism' }}
 
-{% for style_name, recs in agent_results.items() %}
-**{{ style_name | replace('_', ' ') | title }} Agent Recommendations:**
-{% for rec in recs %}
+{% for agent in agent_results %}
+**{{ agent.agent_name | title }} Agent Recommendations:**
+{% for rec in agent.recommendations %}
 - {{ rec.city }} (score: {{ rec.confidence_score }}): {{ rec.reason }}
 {% endfor %}
 
 {% endfor %}
 Selection rules:
+1. FIRST: Eliminate any city that is clearly unsuitable for a {{ budget }} budget traveler on a {{ duration }}-day trip — even if multiple agents recommended it.
 1. FIRST: Eliminate any city that is clearly unsuitable for a {{ budget }} budget traveler on a {{ duration }}-day trip — even if multiple agents recommended it.
 2. PREFER cities that appear in 2 or more agent lists, but only if they are a genuine fit for the budget and duration.
 3. MATCH to travel styles: {% if travel_styles %}A traveler interested in {{ travel_styles | join(', ') }} should get different cities than a generic tourist.{% else %}Apply balanced considerations.{% endif %}

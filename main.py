@@ -19,8 +19,6 @@ from config import get_settings, setup_logging
 from exceptions import VoyageMindError
 from middleware import RequestLoggingMiddleware, limiter, voyagemind_exception_handler
 from routes import router
-from services import LangfuseClient
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,12 +42,7 @@ async def lifespan(app: FastAPI):
     yield  # <-- server is running while we wait here
 
     # --- Shutdown ---
-    # Send any buffered Langfuse traces before the process exits.
-    try:
-        LangfuseClient.get_instance().flush()
-        logger.info("Langfuse flushed — shutting down")
-    except Exception:
-        logger.warning("Langfuse flush failed on shutdown", exc_info=True)
+    logger.info("VoyageMind shutting down")
 
 
 # ---------------------------------------------------------------------------

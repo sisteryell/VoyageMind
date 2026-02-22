@@ -8,7 +8,6 @@ uvicorn[standard]==0.30.0
 openai==1.51.0
 
 # Observability
-langfuse==2.50.2
 
 # Data Validation & Settings
 pydantic==2.9.0
