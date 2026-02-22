@@ -10,8 +10,7 @@ AI-powered multi-agent travel planner. Choose a country and travel styles, and V
 # 1. Clone & install dependencies
 pip install -r requirements.txt
 
-# 2. Create your .env
-cp .env.example .env
+# 2. Put your credentials in .env
 # Fill in your OPENAI_API_KEY
 
 # 3. Run
