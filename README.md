@@ -187,7 +187,7 @@ Run the full pipeline for two countries simultaneously and return both results s
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `OPENAI_API_KEY` | | — | Your OpenAI API key |
+| `OPENAI_API_KEY` | ✅ | — | Your OpenAI API key |
 | `OPENAI_MODEL` | | `gpt-4o-mini` | Model to use |
 | `OPENAI_TIMEOUT` | | `60` | Request timeout in seconds |
 | `OPENAI_MAX_RETRIES` | | `3` | Retry attempts on failure |
