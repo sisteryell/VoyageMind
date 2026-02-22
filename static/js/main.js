@@ -41,26 +41,46 @@
     }
 
     /*  step animation  */
-    const STEP_MSGS = [
-      'Analysing history & culture\u2026',
-      'Exploring culinary scene\u2026',
-      'Evaluating transport links\u2026',
-      'Aggregating final picks\u2026',
-      'Building itineraries\u2026',
-    ];
+    const STYLE_META = {
+      adventure:  { emoji: '\u{1F3D4}', label: 'Adventure'  },
+      relaxation: { emoji: '\u{1F334}', label: 'Relaxation' },
+      family:     { emoji: '\u{1F46A}', label: 'Family'     },
+      honeymoon:  { emoji: '\u{1F498}', label: 'Honeymoon'  },
+      solo:       { emoji: '\u{1F6B6}', label: 'Solo'       },
+      culture:    { emoji: '\u{1F3DB}', label: 'Culture'    },
+      food:       { emoji: '\u{1F35C}', label: 'Food'       },
+      nature:     { emoji: '\u{1F33F}', label: 'Nature'     },
+      aggregate:  { emoji: '\u{1F3AF}', label: 'Aggregate'  },
+      itinerary:  { emoji: '\u{1F4C5}', label: 'Itinerary'  },
+    };
+
     let _stepTimer = null;
-    function startSteps() {
-      const pills = document.querySelectorAll('#loadingState .step-pill');
+    function startSteps(styles) {
+      // Build the step list: selected style agents + always Aggregate + Itinerary
+      const agentKeys = (styles && styles.length ? styles : Object.keys(STYLE_META).slice(0, 8));
+      const steps     = [...agentKeys, 'aggregate', 'itinerary'];
+
+      // Render pills dynamically
+      const container = document.getElementById('stepsContainer');
+      container.innerHTML = steps.map((key, i) => {
+        const m = STYLE_META[key] || { emoji: '\u2699', label: key };
+        return `<span class="step-pill" data-step="${i}">${m.emoji} ${m.label}</span>`;
+      }).join('');
+
+      const pills = container.querySelectorAll('.step-pill');
       const txt   = document.getElementById('loadingText');
-      pills.forEach(p => p.className = 'step-pill');
       if (pills[0]) pills[0].classList.add('active');
-      txt.textContent = STEP_MSGS[0];
+      txt.textContent = `Running ${STYLE_META[steps[0]]?.label ?? steps[0]} agent\u2026`;
       let i = 1;
       _stepTimer = setInterval(() => {
         if (i < pills.length) {
-          pills[i - 1].classList.replace('active','done');
+          pills[i - 1].classList.replace('active', 'done');
           pills[i].classList.add('active');
-          txt.textContent = STEP_MSGS[i];
+          txt.textContent = i < steps.length - 2
+            ? `Running ${STYLE_META[steps[i]]?.label ?? steps[i]} agent\u2026`
+            : i === steps.length - 2
+              ? 'Aggregating final picks\u2026'
+              : 'Building itineraries\u2026';
           i++;
         } else {
           clearInterval(_stepTimer);
@@ -86,7 +106,7 @@
       document.getElementById('resultsSection').classList.remove('visible');
       document.getElementById('chatSection').classList.remove('visible');
       document.getElementById('loadingState').classList.add('visible');
-      startSteps();
+      startSteps(styles);
 
       try {
         const res  = await fetch('/plan', {
@@ -143,7 +163,7 @@
                     <div class="day-card">
                       <div class="day-title">Day ${d.day}: ${esc(d.title)}</div>
                       <ul class="day-activities">
-                        ${(d.activities||[]).map(a => `<li>${esc(a)}</li>`).join('')}
+                        ${(d.activities||[]).map(a => `<li>${esc(a.replace(/^[\s\u2022\u00B7\-\*]+/, ''))}</li>`).join('')}
                       </ul>
                     </div>`).join('')}
                 </div>
@@ -153,41 +173,41 @@
         iSec.innerHTML = '';
       }
 
-      // agent breakdown
-      const AGENTS = [
-        { key: 'history_culture', icon: '&#127963;', label: 'History & Culture', color: '#a78bfa' },
-        { key: 'food_cuisine',    icon: '&#127836;', label: 'Food & Cuisine',    color: '#fb923c' },
-        { key: 'transportation',  icon: '&#9992;',   label: 'Transportation',    color: '#38bdf8' },
-      ];
+      // agent breakdown — built dynamically from whatever agents actually ran
+      const AGENT_COLORS = ['#a78bfa','#fb923c','#38bdf8','#4ade80','#f472b6','#facc15','#34d399','#60a5fa'];
       const dSec = document.getElementById('detailsSection');
-      dSec.innerHTML = '<h3>&#128202; Agent Breakdown</h3>' +
-        AGENTS.map(a => {
-          const cities = (data.agent_details?.[a.key] || []);
-          return `
-            <div class="agent-panel open">
-              <div class="agent-header" onclick="this.parentElement.classList.toggle('open')">
-                <span class="agent-icon">${a.icon}</span>
-                <span class="agent-title">${a.label}</span>
-                <span class="chevron">&#9660;</span>
-              </div>
-              <div class="agent-body">
-                <div class="agent-body-inner">
-                  ${cities.map(c => {
-                    const pct = Math.round(c.confidence_score * 100);
-                    return `
-                      <div class="city-row">
-                        <span class="city-name">${esc(c.city)}</span>
-                        <div class="confidence-bar-wrapper">
-                          <div class="confidence-bar" style="width:${pct}%;background:${a.color}"></div>
-                        </div>
-                        <span class="confidence-label">${pct}%</span>
-                        <span class="city-reason">${esc(c.reason)}</span>
-                      </div>`;
-                  }).join('')}
+      const agentEntries = Object.entries(data.agent_details || {});
+      dSec.innerHTML = agentEntries.length
+        ? '<h3>&#128202; Agent Breakdown</h3>' +
+          agentEntries.map(([key, cities], idx) => {
+            const meta  = STYLE_META[key] || { emoji: '\u2699\uFE0F', label: key };
+            const color = AGENT_COLORS[idx % AGENT_COLORS.length];
+            return `
+              <div class="agent-panel open">
+                <div class="agent-header" onclick="this.parentElement.classList.toggle('open')">
+                  <span class="agent-icon">${meta.emoji}</span>
+                  <span class="agent-title">${meta.label}</span>
+                  <span class="chevron">&#9660;</span>
                 </div>
-              </div>
-            </div>`;
-        }).join('');
+                <div class="agent-body">
+                  <div class="agent-body-inner">
+                    ${(cities||[]).map(c => {
+                      const pct = Math.round((c.confidence_score || 0) * 100);
+                      return `
+                        <div class="city-row">
+                          <span class="city-name">${esc(c.city)}</span>
+                          <div class="confidence-bar-wrapper">
+                            <div class="confidence-bar" style="width:${pct}%;background:${color}"></div>
+                          </div>
+                          <span class="confidence-label">${pct}%</span>
+                          <span class="city-reason">${esc(c.reason)}</span>
+                        </div>`;
+                    }).join('')}
+                  </div>
+                </div>
+              </div>`;
+          }).join('')
+        : '';
 
       document.getElementById('resultsSection').classList.add('visible');
       document.getElementById('chatSection').classList.add('visible');

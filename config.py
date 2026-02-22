@@ -33,11 +33,6 @@ class Settings(BaseSettings):
     openai_timeout: int = Field(60, description="Seconds to wait before giving up on a request")
     openai_max_retries: int = Field(3, description="How many times to retry a failed request")
 
-    # --- Langfuse settings (observability / tracing) ---
-    langfuse_public_key: str = Field(..., description="Langfuse public key (required)")
-    langfuse_secret_key: str = Field(..., description="Langfuse secret key (required)")
-    langfuse_host: str = Field("https://cloud.langfuse.com", description="Langfuse server URL")
-
     # --- General app settings ---
     app_name: str = Field("VoyageMind", description="Application name shown in the API docs")
     app_version: str = Field("2.0.0", description="Current version")

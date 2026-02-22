@@ -1,0 +1,34 @@
+Recommend the TOP 3 cities in {{ country }} for an adventure traveler.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'adventure' }}
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities where key adventure activities are low-cost or self-guided (public hiking trails, free beaches, affordable local guides).
+  - Avoid cities where adventure is gated behind expensive private operators.
+{% elif budget == 'luxury' %}
+  - Favor cities with premium adventure offerings: private guides, luxury eco-lodges, helicopter access, exclusive off-road or expedition experiences.
+{% else %}
+  - Standard mix of guided and self-guided adventure options at mid-range pricing.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend cities where the signature adventure experience can be completed in a single day without complex logistics.
+{% elif duration >= 8 %}
+  - Include remote or off-the-beaten-path adventure hubs that reward multi-day expeditions or extended stays.
+{% endif %}
+
+{% if travel_styles %}
+Apply these style adjustments:
+{% if 'nature' in travel_styles %}  - Weight cities near national parks, reserves, or wilderness areas where adventure and nature overlap.{% endif %}
+{% if 'solo' in travel_styles %}  - Favor cities with an established backpacker or adventure-travel community and well-marked independent trails.{% endif %}
+{% if 'family' in travel_styles %}  - Prioritize cities with junior or family-friendly adventure options alongside adult activities.{% endif %}
+{% if 'relaxation' in travel_styles or 'honeymoon' in travel_styles %}  - Lean toward scenic, lower-intensity adventures — boat trips through gorges, gentle hikes, natural hot springs.{% endif %}
+{% if 'food' in travel_styles %}  - Include cities where post-adventure local food experiences are a highlight.{% endif %}
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how famous it is as an adventure destination in general.

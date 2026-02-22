@@ -1,7 +1,7 @@
 """
-services.py — External API clients (OpenAI and Langfuse)
+services.py — External API clients
 
-Both classes use the Singleton pattern, which means only ONE instance
+The OpenAIClient uses the Singleton pattern, which means only ONE instance
 is ever created. Every part of the app shares the same connection,
 which is more efficient than creating a new connection on every request.
 
@@ -16,7 +16,6 @@ import logging
 from threading import Lock
 from typing import Any, Dict, Optional
 
-from langfuse import Langfuse
 from openai import AsyncOpenAI
 
 from config import get_settings
@@ -97,41 +96,4 @@ class OpenAIClient:
     @classmethod
     def get_instance(cls) -> "OpenAIClient":
         """Convenience method — same as calling OpenAIClient()."""
-        return cls()
-
-
-class LangfuseClient:
-    """
-    A single shared Langfuse client for tracing and observability.
-    Langfuse records what each agent did so you can review it in the dashboard.
-    """
-
-    _instance: Optional["LangfuseClient"] = None
-    _lock = Lock()
-
-    def __new__(cls) -> "LangfuseClient":
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    inst = super().__new__(cls)
-                    inst._init()
-                    cls._instance = inst
-        return cls._instance
-
-    def _init(self) -> None:
-        """Called once to connect to Langfuse."""
-        settings = get_settings()
-        self.client = Langfuse(
-            public_key=settings.langfuse_public_key,
-            secret_key=settings.langfuse_secret_key,
-            host=settings.langfuse_host,
-        )
-
-    def flush(self) -> None:
-        """Send any unsent traces to Langfuse — called on shutdown."""
-        self.client.flush()
-
-    @classmethod
-    def get_instance(cls) -> "LangfuseClient":
-        """Convenience method — same as calling LangfuseClient()."""
         return cls()
