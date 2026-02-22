@@ -14,6 +14,7 @@ Traveler constraints (HARD REQUIREMENTS — do not ignore these):
 {% endfor %}
 Selection rules:
 1. FIRST: Eliminate any city that is clearly unsuitable for a {{ budget }} budget traveler on a {{ duration }}-day trip — even if multiple agents recommended it.
+1. FIRST: Eliminate any city that is clearly unsuitable for a {{ budget }} budget traveler on a {{ duration }}-day trip — even if multiple agents recommended it.
 2. PREFER cities that appear in 2 or more agent lists, but only if they are a genuine fit for the budget and duration.
 3. MATCH to travel styles: {% if travel_styles %}A traveler interested in {{ travel_styles | join(', ') }} should get different cities than a generic tourist.{% else %}Apply balanced considerations.{% endif %}
 4. DIVERSIFY: The two chosen cities should offer meaningfully different experiences where possible.

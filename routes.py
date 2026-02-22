@@ -75,7 +75,7 @@ async def _run_plan(
     This is a helper function — not an endpoint itself.
     Both /plan and /compare call it.
     """
-    # Shared kwargs passed to every specialist agent prompt template
+    # Shared kwargs passed to every agent prompt template
     agent_kwargs = dict(
         country=country,
         budget=budget,
@@ -149,6 +149,7 @@ async def _run_plan(
         "travel_styles": travel_styles,
         "recommendations": final_result["recommendations"],
         "itineraries": itineraries,
+        "agent_details": agent_details,
         "agent_details": agent_details,
     }
 

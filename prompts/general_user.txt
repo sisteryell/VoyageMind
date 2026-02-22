@@ -1,0 +1,35 @@
+Recommend the TOP 3 cities in {{ country }} for a general traveler with no specific style preference.
+
+Traveler constraints — these MUST influence your city choices:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'general sightseeing' }}
+
+Balance these factors equally in your recommendations:
+- Cultural interest and things to do
+- Food quality and variety
+- Ease of access and transport
+- Safety and tourist infrastructure
+- Overall visitor satisfaction and value for money
+
+Apply these rules based on the budget:
+{% if budget == 'budget' %}
+  - Only recommend cities with excellent value: cheap food, affordable accommodation, free attractions.
+  - Avoid expensive resort towns or cities with a high cost of living.
+{% elif budget == 'luxury' %}
+  - Favor cities with premium tourist infrastructure: five-star hotels, fine dining, exclusive experiences.
+  - Polished, well-maintained cities with high-end options in every category.
+{% else %}
+  - Cities with solid mid-range infrastructure: good hotels under $150/night, varied restaurants, reasonable attraction prices.
+{% endif %}
+
+Apply these rules based on trip length:
+{% if duration <= 3 %}
+  - Recommend compact, well-connected cities with high attraction density — see the highlights fast.
+  - Easy airport connections. No cities that waste a travel day just to reach.
+{% elif duration >= 8 %}
+  - Include secondary cities or less-obvious destinations that reward deeper exploration.
+  - Do NOT just list the top-3 most famous cities — consider variety and off-the-beaten-path gems.
+{% endif %}
+
+IMPORTANT: Your confidence_score must reflect overall travel value for this budget ({{ budget }}) and duration ({{ duration }} days).

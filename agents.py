@@ -9,14 +9,19 @@ How it works:
        - Filling in the template variables (e.g. {{ country }}, {{ budget }})
        - Calling the OpenAI API
        - Parsing and validating the JSON response
-  3. Specialist agents only need to declare WHAT files and schema they use.
+  3. StyleAgent is a dynamic agent — instantiated with a style name
+     (e.g. "adventure", "food"), and it loads the matching prompt files
+     ({style}_system.txt, {style}_user.txt) at runtime. When no styles
+     are selected, a "general" agent is used as the fallback.
   4. ItineraryAgent generates day-by-day plans for recommended cities.
   5. ChatAgent answers free-form follow-up questions (returns plain text,
      not JSON — so it overrides run() to skip JSON parsing).
 
 Prompt files live in the /prompts folder:
-  - *_system.txt  — tells the AI what role it is playing
-  - *_user.txt    — the actual question sent to the AI (uses Jinja2 templating)
+  - {style}_system.txt  — tells the AI what role it is playing
+  - {style}_user.txt    — the actual question sent to the AI (Jinja2 templating)
+  - Supported styles: adventure, relaxation, family, honeymoon, solo,
+    culture, food, nature, general
 """
 import json
 import logging
@@ -138,7 +143,7 @@ class Agent:
 
 
 # ---------------------------------------------------------------------------
-# Specialist agents — each is just 4 lines, everything else is in Agent above
+# Dynamic style agent — replaces all hardcoded specialist agents
 # ---------------------------------------------------------------------------
 
 class HistoryCultureAgent(Agent):

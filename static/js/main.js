@@ -11,6 +11,11 @@
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    /** Strip any leading non-letter/non-digit characters the LLM sometimes adds (•, â€¢, -, *, etc.) */
+    function cleanActivity(s) {
+      return String(s ?? '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+    }
+
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -74,6 +79,7 @@
       let i = 1;
       _stepTimer = setInterval(() => {
         if (i < pills.length) {
+          pills[i - 1].classList.replace('active', 'done');
           pills[i - 1].classList.replace('active', 'done');
           pills[i].classList.add('active');
           txt.textContent = i < steps.length - 2
@@ -312,7 +318,7 @@
             ${(it.days||[]).map(d => `
               <div class="compare-itin-day">
                 <strong>Day ${d.day}: ${esc(d.title)}</strong>
-                <ul>${(d.activities||[]).map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+                <ul>${(d.activities||[]).map(a => `<li>${esc(cleanActivity(a))}</li>`).join('')}</ul>
               </div>`).join('')}`).join('')}
         </div>`;
 

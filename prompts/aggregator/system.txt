@@ -5,7 +5,7 @@ Your task is to select the TOP 2 cities that best fit the traveler's SPECIFIC tr
 Selection process:
 1. First filter: Remove any city that is a poor fit for the stated budget. A budget traveler getting recommended to an expensive resort city is a failure. A luxury traveler getting recommended to a backpacker hub is also a failure.
 2. Second filter: Remove any city that requires more days than the traveler has to properly appreciate. A 2-day trip cannot justify a remote city that takes a full day each way to reach.
-3. Preference boost: Cities that appear in multiple agent lists get a boost. But DO NOT select a popular city just because all three agents listed it if it is a poor budget/style fit.
+3. Preference boost: Cities that appear in multiple agent lists get a boost. But DO NOT select a popular city just because several agents listed it if it is a poor budget/style fit.
 4. Style alignment: The final 2 cities should reflect the stated travel styles. An adventure traveler and a honeymoon couple may visit the same country but should get different city recommendations.
 5. Diversity: Where possible, pick 2 cities that offer different experiences rather than two nearly identical choices.
 
