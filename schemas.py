@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -71,8 +72,21 @@ class Itinerary(BaseModel):
         return cls(days=[DayPlan(**d) for d in data])
 
 
-VALID_BUDGETS = ("budget", "mid", "luxury")
-VALID_STYLES = ("adventure", "relaxation", "family", "honeymoon", "solo", "culture", "food", "nature")
+class Budget(str, Enum):
+    budget = "budget"
+    mid = "mid"
+    luxury = "luxury"
+
+
+class TravelStyle(str, Enum):
+    adventure = "adventure"
+    relaxation = "relaxation"
+    family = "family"
+    honeymoon = "honeymoon"
+    solo = "solo"
+    culture = "culture"
+    food = "food"
+    nature = "nature"
 
 
 class PlanRequest(BaseModel):
@@ -87,21 +101,29 @@ class PlanRequest(BaseModel):
     def sanitize_country(cls, v: str) -> str:
         return _validate_country(v)
 
+    @field_validator("duration")
+    @classmethod
+    def valid_duration(cls, v: int) -> int:
+        if not 1 <= v <= 30:
+            raise ValueError("Duration must be between 1 and 30 days")
+        return v
+
     @field_validator("budget")
     @classmethod
     def valid_budget(cls, v: str) -> str:
         v = v.strip().lower()
-        if v not in VALID_BUDGETS:
-            raise ValueError(f"Budget must be one of: {', '.join(VALID_BUDGETS)}")
-        return v
+        try:
+            return Budget(v).value
+        except ValueError:
+            raise ValueError(f"Budget must be one of: {', '.join(b.value for b in Budget)}")
 
     @field_validator("travel_styles")
     @classmethod
     def valid_styles(cls, v: list[str]) -> list[str]:
         cleaned = [s.strip().lower() for s in v if s.strip()]
-        invalid = [s for s in cleaned if s not in VALID_STYLES]
+        invalid = [s for s in cleaned if s not in TravelStyle._value2member_map_]
         if invalid:
-            raise ValueError(f"Invalid travel styles: {invalid}. Choose from: {', '.join(VALID_STYLES)}")
+            raise ValueError(f"Invalid travel styles: {invalid}. Choose from: {', '.join(s.value for s in TravelStyle)}")
         return cleaned
 
 

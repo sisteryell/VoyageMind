@@ -103,7 +103,7 @@
     async function planTravel() {
       const country  = document.getElementById('country').value.trim();
       const budget   = document.getElementById('budget').value;
-      const duration = parseInt(document.getElementById('duration').value) || 5;
+      const duration = (v => Number.isNaN(v) ? 5 : v)(parseInt(document.getElementById('duration').value, 10));
       const styles   = getStyles('styleChips');
 
       showError('errorBanner', '');
@@ -277,7 +277,7 @@
       const cA  = document.getElementById('countryA').value.trim();
       const cB  = document.getElementById('countryB').value.trim();
       const bud = document.getElementById('compareBudget').value;
-      const dur = parseInt(document.getElementById('compareDuration').value) || 5;
+      const dur = (v => Number.isNaN(v) ? 5 : v)(parseInt(document.getElementById('compareDuration').value, 10));
       const sty = getStyles('compareStyleChips');
 
       showError('compareError', '');
