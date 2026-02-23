@@ -1,16 +1,3 @@
-"""
-services.py — External API clients
-
-The OpenAIClient uses the Singleton pattern, which means only ONE instance
-is ever created. Every part of the app shares the same connection,
-which is more efficient than creating a new connection on every request.
-
-How the Singleton pattern works here:
-  - `_instance` stores the single shared object (None at first).
-  - `__new__` is called before `__init__` whenever you do `MyClass()`.
-  - We check if `_instance` is already set; if so we return it immediately.
-  - A Lock ensures this is safe even if two threads call it at the same time.
-"""
 import asyncio
 import logging
 from threading import Lock
@@ -25,27 +12,21 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIClient:
-    """
-    A single shared OpenAI client for the whole application.
-    Includes automatic retry logic — if a request fails, it tries again
-    with increasing wait times (2s, 4s, 8s) before giving up.
-    """
+    """Singleton wrapper around AsyncOpenAI with exponential-backoff retries."""
 
     _instance: Optional["OpenAIClient"] = None
-    _lock = Lock()  # prevents two threads from creating two instances at once
+    _lock = Lock()
 
     def __new__(cls) -> "OpenAIClient":
-        # Only create the instance the first time; return the existing one after that
         if cls._instance is None:
             with cls._lock:
-                if cls._instance is None:  # double-check inside the lock
+                if cls._instance is None:
                     inst = super().__new__(cls)
                     inst._init()
                     cls._instance = inst
         return cls._instance
 
     def _init(self) -> None:
-        """Called once to set up the OpenAI connection."""
         settings = get_settings()
         self.client = AsyncOpenAI(
             api_key=settings.openai_api_key,
@@ -60,40 +41,30 @@ class OpenAIClient:
         temperature: float = 0.7,
         response_format: Optional[Dict[str, Any]] = None,
     ) -> str:
-        """
-        Send a chat message to OpenAI and return the reply as a string.
-        Retries automatically on failure using exponential back-off.
-        """
-        # Build the request parameters
         kwargs: Dict[str, Any] = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature,  # higher = more creative, lower = more focused
+            "temperature": temperature,
         }
         if response_format:
-            kwargs["response_format"] = response_format  # force JSON output from the LLM
+            kwargs["response_format"] = response_format
 
         last_error: Optional[Exception] = None
         for attempt in range(1, self._max_retries + 1):
             try:
                 response = await self.client.chat.completions.create(**kwargs)
-                return response.choices[0].message.content  # the LLM's reply text
+                return response.choices[0].message.content
             except Exception as exc:
                 last_error = exc
-                wait = 2 ** attempt  # wait 2s, then 4s, then 8s between retries
+                wait = 2 ** attempt
                 logger.warning(
-                    "OpenAI call failed (attempt %d/%d): %s — retrying in %ds",
-                    attempt,
-                    self._max_retries,
-                    exc,
-                    wait,
+                    "OpenAI attempt %d/%d failed: %s — retrying in %ds",
+                    attempt, self._max_retries, exc, wait,
                 )
                 await asyncio.sleep(wait)
 
-        # All retries exhausted — raise our custom error
         raise OpenAIClientError(str(last_error))
 
     @classmethod
     def get_instance(cls) -> "OpenAIClient":
-        """Convenience method — same as calling OpenAIClient()."""
         return cls()
