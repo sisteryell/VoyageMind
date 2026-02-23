@@ -112,7 +112,7 @@ async def favicon():
 
 
 @router.post("/plan", response_model=PlanResponse)
-@limiter.limit("10/minute")
+@limiter.limit("3/minute")
 async def plan_travel(request: Request, plan_request: PlanRequest):
     country = plan_request.country
     session_id = plan_request.session_id or f"voyage-{uuid.uuid4().hex[:12]}"
@@ -131,7 +131,7 @@ async def plan_travel(request: Request, plan_request: PlanRequest):
 
 
 @router.post("/chat", response_model=ChatResponse)
-@limiter.limit("20/minute")
+@limiter.limit("10/minute")
 async def chat(request: Request, chat_request: ChatRequest):
     session_id = f"chat-{uuid.uuid4().hex[:12]}"
     logger.info("Chat question for '%s': %s", chat_request.country, chat_request.question[:80])

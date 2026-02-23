@@ -23,18 +23,20 @@ Each day must have:
 - Meal suggestions that match the budget (cheap eats for budget, restaurant names/types for mid/luxury)
 
 You must respond with VALID JSON ONLY in this exact format:
-[
-  {
-    "day": 1,
-    "title": "Day theme title",
-    "activities": [
-      "Morning: Specific activity",
-      "Lunch: Specific food suggestion appropriate for the budget",
-      "Afternoon: Specific activity",
-      "Evening: Specific activity or dinner suggestion"
-    ]
-  }
-]
+{
+  "days": [
+    {
+      "day": 1,
+      "title": "Day theme title",
+      "activities": [
+        "Morning: Specific activity",
+        "Lunch: Specific food suggestion appropriate for the budget",
+        "Afternoon: Specific activity",
+        "Evening: Specific activity or dinner suggestion"
+      ]
+    }
+  ]
+}
 
 Rules:
 - Return exactly the number of days requested

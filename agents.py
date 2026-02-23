@@ -35,6 +35,8 @@ class Agent:
         try:
             if isinstance(raw, list):
                 validated = self.schema.from_list(raw)
+            elif "days" in raw:
+                validated = self.schema(**raw)
             elif "recommendations" in raw:
                 validated = self.schema(**raw)
             elif "cities" in raw:
