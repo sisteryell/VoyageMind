@@ -1,60 +1,33 @@
 # VoyageMind
 
-AI-powered multi-agent travel planner. Choose a country and travel styles, and VoyageMind dynamically selects the right specialist agents to run — returning the best cities with day-by-day itineraries.
+A travel planning assistant powered by GPT-4o-mini. You pick a country, budget, duration, and travel style — it gives you city recommendations and a day-by-day itinerary.
 
 ---
 
-## Quick Start
+## What it does
 
-```bash
-# 1. Clone & install dependencies
-pip install -r requirements.txt
-
-# 2. Put your credentials in .env
-# Fill in your OPENAI_API_KEY
-
-# 3. Run
-uvicorn main:app --reload
-```
-
-Open **http://localhost:8000** in your browser.
+- Runs a specialist AI agent based on your chosen travel style (solo, honeymoon, adventure, etc.)
+- Aggregates the results into ranked city recommendations
+- Builds a detailed itinerary for each recommended city
+- Lets you ask follow-up questions about your trip
+- Compare two countries side by side
 
 ---
 
-## How It Works
+## Travel Styles
 
-### Planning Pipeline (`POST /plan`)
-
-```
-User selects country + budget + duration + travel styles
-        ↓
-Dynamic agent selection (based on travel styles)
-        ↓
-Selected specialist agents run IN PARALLEL
-        ↓
-Aggregator agent → picks top 2 cities
-        ↓
-2 × Itinerary agents run IN PARALLEL (one per city)
-        ↓
-Full result returned to the browser
-```
-
-### Dynamic Agent Selection
-
-Agents are selected at runtime based on the user's chosen travel styles. Only the relevant agents run — no wasted API calls.
-
-| Travel Style | Agent |
+| Style | What the agent focuses on |
 |---|---|
-| 🏔️ Adventure | `AdventureAgent` |
-| 🌴 Relaxation | `RelaxationAgent` |
-| 👨‍👩‍👧 Family | `FamilyAgent` |
-| 💘 Honeymoon | `HoneymoonAgent` |
-| 🚶 Solo | `SoloAgent` |
-| 🏛️ Culture | `HistoryCultureAgent` |
-| 🍜 Food | `FoodCuisineAgent` |
-| 🌿 Nature | `NatureAgent` |
+| Adventure | Hiking, extreme sports, outdoor activities |
+| Relaxation | Spas, beaches, slow-paced retreats |
+| Family | Kid-friendly activities, safety, convenience |
+| Honeymoon | Romantic spots, fine dining, scenic stays |
+| Solo | Budget tips, safe neighbourhoods, solo-friendly experiences |
+| Culture | Museums, heritage sites, local history |
+| Food | Street food, local restaurants, food markets |
+| Nature | National parks, wildlife, scenic landscapes |
 
-> If no styles are selected, all 8 agents run.
+If you pick multiple styles, all relevant agents run in parallel and the aggregator combines them.
 
 ---
 
@@ -62,123 +35,170 @@ Agents are selected at runtime based on the user's chosen travel styles. Only th
 
 ```
 VoyageMind/
-├── main.py              # FastAPI app — CORS, middleware, lifespan
-├── config.py            # Pydantic-settings configuration (reads .env)
-├── routes.py            # API endpoints: /plan, /chat, /compare
-├── agents.py            # Base Agent class + all specialist agents + TRAVEL_STYLE_AGENT_MAP
-├── schemas.py           # Pydantic models for requests, responses, and LLM output
-├── services.py          # OpenAI singleton client (with retry + back-off)
-├── exceptions.py        # Custom exception hierarchy
-├── middleware.py        # Request-ID tracking & structured logging
-├── prompts/             # Prompt files — one subfolder per agent
-│   ├── adventure/
-│   │   ├── system.txt
-│   │   └── user.txt
-│   ├── aggregator/
-│   ├── chat/
-│   ├── family/
-│   ├── food_cuisine/
-│   ├── history_culture/
-│   ├── honeymoon/
-│   ├── itinerary/
-│   ├── nature/
-│   ├── relaxation/
-│   ├── solo/
-│   └── transportation/
-├── templates/
-│   └── index.html       # Single-page frontend (vanilla JS)
+├── main.py               # FastAPI app setup
+├── routes.py             # API endpoints
+├── agents.py             # Agent functions + TRAVEL_STYLE_AGENT_MAP
+├── schemas.py            # Request/response models
+├── config.py             # Settings from .env
+├── exceptions.py         # Custom error classes
+├── services.py           # OpenAI client
+├── middleware.py         # Rate limiting
+├── requirements.txt
+├── .env                  # Your API keys (never commit this)
+├── .env.example          # Template for .env
 ├── static/
 │   ├── css/style.css
 │   └── js/main.js
-├── requirements.txt
-├── .env.example
-└── .env                 # Your local secrets (git-ignored)
+├── templates/
+│   └── index.html
+└── prompts/
+    ├── adventure/
+    │   ├── system.txt
+    │   └── user.txt
+    ├── aggregator/
+    ├── chat/
+    ├── family/
+    ├── food_cuisine/
+    ├── history_culture/
+    ├── honeymoon/
+    ├── itinerary/
+    ├── nature/
+    ├── relaxation/
+    ├── solo/
+    └── transportation/
 ```
+
+---
+
+## Setup
+
+**1. Clone the repo**
+```bash
+git clone https://github.com/sisteryell/VoyageMind.git
+cd VoyageMind
+```
+
+**2. Create a virtual environment**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**3. Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Create your `.env` file**
+
+Open `.env` and fill in your keys:
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL = gpt-4o-mini
+OPENAI_TIMEOUT = 60
+OPENAI_MAX_RETRIES = 3
+APP_NAME = VoyageMind
+APP_VERSION = 2.0.0
+DEBUG = false
+LOG_LEVEL = INFO
+ALLOWED_ORIGINS = *
+```
+
+**5. Run the app**
+```bash
+uvicorn main:app --reload
+```
+
+Open **http://localhost:8000** in your browser.
 
 ---
 
 ## API Endpoints
 
-### `GET /`
-Serves the frontend HTML page.
-
 ### `POST /plan`
-Run the full planning pipeline for one country.
+Generate city recommendations and itineraries.
 
+**Request**
 ```json
-// Request
 {
   "country": "Japan",
-  "budget": "mid",
+  "budget": "medium",
   "duration": 7,
-  "travel_styles": ["honeymoon", "food"]
+  "travel_styles": ["solo", "food"]
 }
+```
 
-// Response
+**Response**
+```json
 {
   "country": "Japan",
-  "budget": "mid",
+  "budget": "medium",
   "duration": 7,
-  "travel_styles": ["honeymoon", "food"],
+  "travel_styles": ["solo", "food"],
   "recommendations": [
-    { "city": "Kyoto", "reason": "..." },
-    { "city": "Tokyo", "reason": "..." }
+    {
+      "city": "Tokyo",
+      "reason": "Best city for solo food exploration",
+      "highlights": ["Tsukiji market", "Ramen street", "Shibuya"]
+    }
   ],
   "itineraries": [
-    { "city": "Kyoto", "days": [ ... ] },
-    { "city": "Tokyo", "days": [ ... ] }
+    {
+      "city": "Tokyo",
+      "days": [
+        {
+          "day": 1,
+          "title": "Arrival and First Bites",
+          "activities": ["...", "..."]
+        }
+      ]
+    }
   ],
   "agent_details": {
-    "honeymoon": [ { "city": "...", "confidence_score": 0.92, "reason": "..." } ],
-    "food":      [ { "city": "...", "confidence_score": 0.88, "reason": "..." } ]
-  },
-  "session_id": "voyage-abc123"
+    "solo": [...],
+    "food": [...]
+  }
 }
 ```
 
-**Rate limit:** 10 requests/minute
+---
 
 ### `POST /chat`
-Ask a follow-up question about a previous plan.
+Ask a follow-up question about a country.
 
+**Request**
 ```json
-// Request
 {
+  "message": "What is the best time to visit?",
   "country": "Japan",
-  "question": "What's the best time to visit Kyoto?",
-  "budget": "mid",
+  "budget": "medium",
   "duration": 7,
-  "travel_styles": ["honeymoon"],
-  "recommendations": [ ... ]
+  "travel_styles": ["solo"]
 }
-
-// Response
-{ "answer": "The best time to visit Kyoto is..." }
 ```
 
-**Rate limit:** 20 requests/minute
+**Response**
+```json
+{
+  "response": "The best time to visit Japan is..."
+}
+```
+
+---
 
 ### `POST /compare`
-Run the full pipeline for two countries simultaneously and return both results side by side.
+Compare two countries for a given travel style.
 
+**Request**
 ```json
-// Request
 {
   "country_a": "Japan",
-  "country_b": "Italy",
-  "budget": "luxury",
+  "country_b": "Thailand",
+  "budget": "low",
   "duration": 10,
-  "travel_styles": ["culture"]
-}
-
-// Response
-{
-  "country_a": { ...full plan for Japan... },
-  "country_b": { ...full plan for Italy... }
+  "travel_styles": ["solo"]
 }
 ```
-
-**Rate limit:** 5 requests/minute
 
 ---
 
@@ -187,42 +207,34 @@ Run the full pipeline for two countries simultaneously and return both results s
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `OPENAI_API_KEY` | ✅ | — | Your OpenAI API key |
-| `OPENAI_MODEL` | | `gpt-4o-mini` | Model to use |
-| `OPENAI_TIMEOUT` | | `60` | Request timeout in seconds |
-| `OPENAI_MAX_RETRIES` | | `3` | Retry attempts on failure |
-| `APP_NAME` | | `VoyageMind` | App name in logs/docs |
-| `APP_VERSION` | | `2.0.0` | Version string |
-| `DEBUG` | | `false` | Enable debug mode |
-| `LOG_LEVEL` | | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
-| `ALLOWED_ORIGINS` | | `*` | Comma-separated CORS origins |
-
-See [.env.example](.env.example) for a ready-to-copy template.
+| `OPENAI_MODEL` | ❌ | `gpt-4o-mini` | Model to use |
+| `LOG_LEVEL` | ❌ | `INFO` | Logging level |
 
 ---
 
-## Production-Grade Features
+## How it works
 
-| Area | Detail |
+```
+User picks country + budget + duration + travel styles
+        ↓
+Specialist agents run in parallel (one per selected style)
+        ↓
+Aggregator combines results → ranked city recommendations
+        ↓
+Itinerary agent builds day-by-day plan for each city
+        ↓
+Response returned to browser
+```
+
+---
+
+## Rate Limits
+
+| Endpoint | Limit |
 |---|---|
-| **Configuration** | `pydantic-settings` — validated at startup, fails fast if required vars are missing |
-| **Error handling** | Custom `VoyageMindError` hierarchy with a global FastAPI exception handler |
-| **Resilience** | OpenAI calls retry with exponential back-off (2s → 4s → 8s) |
-| **Rate limiting** | Per-endpoint limits via `slowapi` |
-| **Middleware** | Per-request UUID, structured timing logs, CORS |
-| **Validation** | Pydantic v2 on all requests, responses, and LLM JSON output |
-| **DRY agents** | Zero code duplication — subclasses declare only prompts + schema |
-| **Parallel execution** | `asyncio.gather` for specialist agents and itinerary agents |
-
----
-
-## Tech Stack
-
-- **Python 3.11+**
-- **FastAPI** + Uvicorn
-- **OpenAI** (GPT-4o-mini by default)
-- **Pydantic v2** — validation & settings
-- **Jinja2** — prompt templating
-- **slowapi** — rate limiting
+| `/plan` | 3 requests/minute |
+| `/chat` | 10 requests/minute |
+| `/compare` | 5 requests/minute |
 
 ---
 
