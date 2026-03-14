@@ -51,7 +51,7 @@ class FinalRecommendation(BaseModel):
 
 
 class FinalRecommendationList(BaseModel):
-    recommendations: list[FinalRecommendation] = Field(..., min_length=2, max_length=2)
+    recommendations: list[FinalRecommendation] = Field(..., min_length=1, max_length=5)
 
     @classmethod
     def from_list(cls, data: list) -> FinalRecommendationList:
@@ -93,6 +93,7 @@ class PlanRequest(BaseModel):
     country: str = Field(..., min_length=1, max_length=100)
     budget: str = Field("mid")
     duration: int = Field(5, ge=1, le=30)
+    city_count: int = Field(2, ge=1, le=5)
     travel_styles: list[str] = Field(default_factory=list)
     session_id: str | None = Field(default=None)
 
@@ -131,6 +132,7 @@ class PlanResponse(BaseModel):
     country: str
     budget: str
     duration: int
+    city_count: int
     travel_styles: list[str]
     recommendations: list[dict]
     itineraries: list[dict]
