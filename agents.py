@@ -25,30 +25,43 @@ class Agent:
     def __init__(self) -> None:
         self.openai = OpenAIClient.get_instance()
 
-    def _load_system_prompt(self) -> str:
-        return (_PROMPTS_DIR / self.system_prompt_file).read_text(encoding="utf-8").strip()
+    def _load_system_prompt(self, **kwargs: object) -> str:
+        return _JINJA_ENV.get_template(self.system_prompt_file).render(**kwargs).strip()
 
     def _render_user_prompt(self, **kwargs: object) -> str:
         return _JINJA_ENV.get_template(self.prompt_template).render(**kwargs)
 
-    def _validate(self, raw: dict) -> dict:
+    def _validate(self, raw: dict, **kwargs: object) -> dict:
+        city_count = kwargs.get("city_count")
+
+        def _from_list(data: list) -> BaseModel:
+            try:
+                if city_count is not None:
+                    return self.schema.from_list(data, city_count=city_count)
+            except TypeError:
+                pass
+            return self.schema.from_list(data)
+
         try:
             if isinstance(raw, list):
-                validated = self.schema.from_list(raw)
+                validated = _from_list(raw)
             elif "days" in raw:
                 validated = self.schema(**raw)
             elif "recommendations" in raw:
-                validated = self.schema(**raw)
+                if isinstance(raw["recommendations"], list):
+                    validated = _from_list(raw["recommendations"])
+                else:
+                    validated = self.schema(**raw)
             elif "cities" in raw:
-                validated = self.schema.from_list(raw["cities"])
+                validated = _from_list(raw["cities"])
             elif "result" in raw:
-                validated = self.schema.from_list(raw["result"])
+                validated = _from_list(raw["result"])
             elif "response" in raw:
-                validated = self.schema.from_list(raw["response"])
+                validated = _from_list(raw["response"])
             else:
                 list_values = [v for v in raw.values() if isinstance(v, list)]
                 if list_values:
-                    validated = self.schema.from_list(list_values[0])
+                    validated = _from_list(list_values[0])
                 else:
                     raise ValueError(f"Unexpected response shape: {list(raw.keys())}")
             return validated.model_dump()
@@ -59,7 +72,7 @@ class Agent:
         kwargs.pop("session_id", None)
 
         messages = [
-            {"role": "system", "content": self._load_system_prompt()},
+            {"role": "system", "content": self._load_system_prompt(**kwargs)},
             {"role": "user",   "content": self._render_user_prompt(**kwargs)},
         ]
 
@@ -75,7 +88,7 @@ class Agent:
         except json.JSONDecodeError as exc:
             raise AgentError(self.name, f"LLM returned invalid JSON: {exc}") from exc
 
-        validated = self._validate(result)
+        validated = self._validate(result, **kwargs)
         logger.info("Agent '%s' finished", self.name)
         return validated
 
@@ -178,7 +191,7 @@ class ChatAgent(Agent):
         kwargs.pop("session_id", None)
 
         messages = [
-            {"role": "system", "content": self._load_system_prompt()},
+            {"role": "system", "content": self._load_system_prompt(**kwargs)},
             {"role": "user",   "content": self._render_user_prompt(**kwargs)},
         ]
 

@@ -72,7 +72,13 @@ class TravelModel:
         agent_classes = list(selected.values())
 
         results = await asyncio.gather(
-            *(cls().run(**agent_kwargs) for cls in agent_classes)
+            *(
+                cls().run(
+                    **agent_kwargs,
+                    travel_styles=[style],
+                )
+                for style, cls in zip(styles, agent_classes)
+            )
         )
 
         agent_results = [

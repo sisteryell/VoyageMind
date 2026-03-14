@@ -12,3 +12,8 @@ Recommended cities:
 {% endif %}
 
 User question: {{ question }}
+
+Answer requirements:
+- Keep response concise and actionable
+- Tie recommendations to the provided trip context
+- If uncertain about a factual detail, explicitly state uncertainty

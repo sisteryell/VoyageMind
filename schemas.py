@@ -31,11 +31,15 @@ class CityRecommendation(BaseModel):
 
 
 class CityRecommendationList(BaseModel):
-    recommendations: list[CityRecommendation] = Field(..., min_length=3, max_length=3)
+    recommendations: list[CityRecommendation] = Field(..., min_length=1, max_length=5)
 
     @classmethod
-    def from_list(cls, data: list) -> CityRecommendationList:
-        return cls(recommendations=[CityRecommendation(**item) for item in data])
+    def from_list(cls, data: list, city_count: int | None = None) -> CityRecommendationList:
+        recommendations = [CityRecommendation(**item) for item in data]
+        if city_count is not None:
+            target = max(1, min(5, int(city_count)))
+            recommendations = recommendations[:target]
+        return cls(recommendations=recommendations)
 
 
 class FinalRecommendation(BaseModel):

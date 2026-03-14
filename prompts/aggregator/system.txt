@@ -16,15 +16,20 @@ The final reason for each city MUST explicitly explain:
 - Which agents recommended it and why their combined insight supports the choice
 
 You must respond with VALID JSON ONLY in this exact format:
+```json
 [
   {
     "city": "<city_name>",
     "reason": "<justification that covers budget fit, duration fit, style fit, and agent agreement>"
   }
 ]
+```
 
 Rules:
 - Return exactly {{ city_count }} cities
 - Reasons should be specific to this traveler's constraints — avoid generic tourist-brochure language
 - No additional text outside the JSON structure
 - Ensure proper JSON formatting
+- Cities must be UNIQUE and meaningfully different (avoid same-metro or near-duplicate picks)
+- Keep each reason concise (1-3 sentences) and explicitly mention budget + duration + style fit
+- Do not use markdown, code fences, or commentary outside raw JSON

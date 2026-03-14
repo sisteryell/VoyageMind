@@ -1,9 +1,12 @@
-Recommend the TOP 3 cities in {{ country }} for an adventure traveler.
+Recommend the TOP {{ city_count | default(3) }} cities in {{ country }} for an adventure traveler.
 
 Traveler constraints — these MUST influence your city choices:
 - Budget: {{ budget }}
 - Trip length: {{ duration }} days
 - Travel styles: {{ travel_styles | join(', ') if travel_styles else 'adventure' }}
+
+Agent focus rule:
+- This agent is adventure-first. If any non-adventure style appears, treat it as minor context and do not let it override adventure suitability.
 
 Apply these rules based on the budget:
 {% if budget == 'budget' %}
@@ -32,3 +35,9 @@ Apply these style adjustments:
 {% endif %}
 
 IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how famous it is as an adventure destination in general.
+
+Final output checklist before you answer:
+- Return exactly {{ city_count | default(3) }} UNIQUE cities in valid JSON array format
+- Sort cities from highest to lowest confidence_score
+- Use confidence_score between 0 and 1 (prefer 2 decimal places)
+- Keep each reason concrete, specific, and tied to budget + duration + travel styles

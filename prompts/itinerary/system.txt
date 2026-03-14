@@ -23,6 +23,7 @@ Each day must have:
 - Meal suggestions that match the budget (cheap eats for budget, restaurant names/types for mid/luxury)
 
 You must respond with VALID JSON ONLY in this exact format:
+```json
 {
   "days": [
     {
@@ -37,9 +38,13 @@ You must respond with VALID JSON ONLY in this exact format:
     }
   ]
 }
+```
 
 Rules:
 - Return exactly the number of days requested
 - Every activity must be realistic, geographically logical, and match the budget and travel style
 - No additional text outside the JSON structure
 - Ensure proper JSON formatting
+- Each day must contain exactly 4 activities in this order: Morning, Lunch, Afternoon, Evening
+- Keep activities concrete and concise; avoid placeholders like "Explore local area"
+- Do not use markdown, code fences, or commentary outside raw JSON
