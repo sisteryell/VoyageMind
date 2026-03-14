@@ -104,6 +104,7 @@
       const country  = document.getElementById('country').value.trim();
       const budget   = document.getElementById('budget').value;
       const duration = (v => Number.isNaN(v) ? 5 : v)(parseInt(document.getElementById('duration').value, 10));
+      const cityCount = (v => Number.isNaN(v) ? 2 : Math.min(5, Math.max(1, v)))(parseInt(document.getElementById('cityCount').value, 10));
       const styles   = getStyles('styleChips');
 
       showError('errorBanner', '');
@@ -118,7 +119,7 @@
         const res  = await fetch('/plan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country, budget, duration, travel_styles: styles }),
+          body: JSON.stringify({ country, budget, duration, city_count: cityCount, travel_styles: styles }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Request failed');
@@ -141,6 +142,7 @@
       meta.innerHTML =
         `<span class="meta-pill">${esc(data.budget)} budget</span>` +
         `<span class="meta-pill">${esc(data.duration)} days</span>` +
+        `<span class="meta-pill">${esc(data.city_count || (data.recommendations || []).length)} cities</span>` +
         (data.travel_styles||[]).map(s => `<span class="meta-pill">${esc(s)}</span>`).join('');
 
       // rec cards
@@ -336,6 +338,7 @@
         country:  _lastPlan.country,
         budget:   _lastPlan.budget,
         duration: _lastPlan.duration,
+        city_count: _lastPlan.city_count || (_lastPlan.recommendations?.length || 2),
       });
       if (_lastPlan.travel_styles?.length) p.set('styles', _lastPlan.travel_styles.join(','));
       const url = location.origin + '?' + p.toString();
@@ -359,6 +362,7 @@
       document.getElementById('country').value  = p.get('country');
       if (p.has('budget'))   document.getElementById('budget').value    = p.get('budget');
       if (p.has('duration')) document.getElementById('duration').value  = p.get('duration');
+      if (p.has('city_count')) document.getElementById('cityCount').value = p.get('city_count');
       if (p.has('styles')) {
         const styles = p.get('styles').split(',');
         document.querySelectorAll('#styleChips .style-chip').forEach(c => {

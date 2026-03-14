@@ -420,8 +420,9 @@
       height: 4px;
       border-radius: var(--radius) var(--radius) 0 0;
     }
-    .rec-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-    .rec-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent3), var(--success)); }
+    .rec-card:nth-child(3n + 1)::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .rec-card:nth-child(3n + 2)::before { background: linear-gradient(90deg, var(--accent3), var(--success)); }
+    .rec-card:nth-child(3n)::before { background: linear-gradient(90deg, var(--accent2), var(--accent3)); }
 
     .rec-rank {
       display: inline-flex;
@@ -433,8 +434,9 @@
       font-size: .82rem;
       margin-bottom: .6rem;
     }
-    .rec-card:nth-child(1) .rec-rank { background: rgba(99,102,241,.15); color: var(--accent2); }
-    .rec-card:nth-child(2) .rec-rank { background: rgba(56,189,248,.15); color: var(--accent3); }
+    .rec-card:nth-child(3n + 1) .rec-rank { background: rgba(99,102,241,.15); color: var(--accent2); }
+    .rec-card:nth-child(3n + 2) .rec-rank { background: rgba(56,189,248,.15); color: var(--accent3); }
+    .rec-card:nth-child(3n) .rec-rank { background: rgba(52,211,153,.15); color: var(--success); }
 
     .rec-city {
       font-size: 1.3rem;
@@ -553,7 +555,7 @@
     }
 
     .day-activities li::before {
-      content: 'â€¢';
+      content: '\2022';
       color: var(--accent3);
       margin-right: .5rem;
       font-weight: 700;
@@ -602,7 +604,11 @@
       transition: max-height .35s ease;
     }
 
-    .agent-panel.open .agent-body { max-height: 600px; }
+    .agent-panel.open .agent-body {
+      max-height: 60vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
     .agent-body-inner {
       padding: 0 1.25rem 1.25rem;
@@ -749,7 +755,7 @@
     .chat-send:disabled { opacity: .4; cursor: not-allowed; }
     .chat-send:hover:not(:disabled) { opacity: .85; }
 
-    /* â”€â”€â”€â”€â”€ Compare results â”€â”€â”€â”€â”€ */
+    /*  Compare results  */
     .compare-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -820,12 +826,12 @@
     }
 
     .compare-itin-day ul li::before {
-      content: 'â€¢';
+      content: '\2022';
       color: var(--accent3);
       margin-right: .4rem;
     }
 
-    /* â”€â”€â”€â”€â”€ Markdown rendered inside chat â”€â”€â”€â”€â”€ */
+    /*  Markdown rendered inside chat  */
     .chat-md p          { margin: 0 0 .6rem; }
     .chat-md p:last-child { margin-bottom: 0; }
     .chat-md strong     { color: var(--text); font-weight: 700; }
@@ -838,7 +844,7 @@
     .chat-md blockquote { border-left: 3px solid var(--accent); margin: .4rem 0; padding-left: .75rem; color: var(--muted); }
     .chat-md hr         { border: none; border-top: 1px solid var(--border); margin: .6rem 0; }
 
-    /* â”€â”€â”€â”€â”€ Footer â”€â”€â”€â”€â”€ */
+    /*  Footer  */
     .footer {
       text-align: center;
       padding: 2.5rem 0 1.5rem;
@@ -846,7 +852,7 @@
       font-size: .8rem;
     }
 
-    /* â”€â”€â”€â”€â”€ Responsive â”€â”€â”€â”€â”€ */
+    /*  Responsive  */
     @media (max-width: 700px) {
       .hero h1 { font-size: 2rem; }
       .search-row { flex-direction: column; }
