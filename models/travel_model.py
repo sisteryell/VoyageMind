@@ -70,7 +70,7 @@ class TravelModel:
 
         style_results = await asyncio.gather(
             *(
-                cls().run(**agent_kwargs, travel_styles=[style])
+                cls().run(**agent_kwargs, travel_styles=travel_styles)
                 for style, cls in selected.items()
             )
         )
