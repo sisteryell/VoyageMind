@@ -41,7 +41,7 @@ Rules:
 - Reason MUST reference the budget/duration/travel style fit, not just generic transport facts
 - No additional text outside the JSON structure
 - Ensure proper JSON formatting
-- Use 3 UNIQUE cities (no duplicates or near-duplicates)
+- Use {{ city_count | default(3) }} UNIQUE cities (no duplicates or near-duplicates)
 - Prefer confidence_score values with 2 decimal places and rank results from highest to lowest confidence
 - Keep each reason specific and concise (1-3 sentences), avoid vague marketing language
 - Do not use markdown, code fences, or commentary outside raw JSON
