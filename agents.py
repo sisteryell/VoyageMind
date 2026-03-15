@@ -1,3 +1,4 @@
+import inspect
 import json
 import logging
 from pathlib import Path
@@ -31,30 +32,37 @@ class Agent:
     def _render_user_prompt(self, **kwargs: object) -> str:
         return _JINJA_ENV.get_template(self.prompt_template).render(**kwargs)
 
-    def _validate(self, raw: dict) -> dict:
+    def _from_list(self, data: list, city_count: int | None = None) -> BaseModel:
+        """Delegate to self.schema.from_list, forwarding city_count when supported."""
+        sig = inspect.signature(self.schema.from_list)
+        if "city_count" in sig.parameters and city_count is not None:
+            return self.schema.from_list(data, city_count=city_count)
+        return self.schema.from_list(data)
+
+    def _validate(self, raw: dict, city_count: int | None = None) -> dict:
         try:
             if isinstance(raw, dict) and "error" in raw:
                 raise ValueError(str(raw.get("error") or "Model reported an error"))
 
             if isinstance(raw, list):
-                validated = _from_list(raw)
+                validated = self._from_list(raw, city_count)
             elif "days" in raw:
                 validated = self.schema(**raw)
             elif "recommendations" in raw:
                 if isinstance(raw["recommendations"], list):
-                    validated = self.schema.from_list(raw["recommendations"])
+                    validated = self._from_list(raw["recommendations"], city_count)
                 else:
                     validated = self.schema(**raw)
             elif "cities" in raw:
-                validated = _from_list(raw["cities"])
+                validated = self._from_list(raw["cities"], city_count)
             elif "result" in raw:
-                validated = _from_list(raw["result"])
+                validated = self._from_list(raw["result"], city_count)
             elif "response" in raw:
-                validated = _from_list(raw["response"])
+                validated = self._from_list(raw["response"], city_count)
             else:
                 list_values = [v for v in raw.values() if isinstance(v, list)]
                 if list_values:
-                    validated = _from_list(list_values[0])
+                    validated = self._from_list(list_values[0], city_count)
                 else:
                     raise ValueError(f"Unexpected response shape: {list(raw.keys())}")
             return validated.model_dump()
@@ -81,7 +89,7 @@ class Agent:
         except json.JSONDecodeError as exc:
             raise AgentError(self.name, f"LLM returned invalid JSON: {exc}") from exc
 
-        validated = self._validate(result, **kwargs)
+        validated = self._validate(result, city_count=kwargs.get("city_count"))
         logger.info(f"Agent '{self.name}' finished")
         return validated
 
