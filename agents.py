@@ -66,10 +66,10 @@ class Agent:
 
         messages = [
             {"role": "system", "content": self._load_system_prompt(**kwargs)},
-            {"role": "user",   "content": self._render_user_prompt(**kwargs)},
+            {"role": "user", "content": self._render_user_prompt(**kwargs)},
         ]
 
-        logger.info("Agent '%s' starting", self.name)
+        logger.info(f"Agent '{self.name}' starting")
 
         try:
             content = await self.openai.chat_completion(
@@ -82,7 +82,7 @@ class Agent:
             raise AgentError(self.name, f"LLM returned invalid JSON: {exc}") from exc
 
         validated = self._validate(result, **kwargs)
-        logger.info("Agent '%s' finished", self.name)
+        logger.info(f"Agent '{self.name}' finished")
         return validated
 
 
@@ -92,13 +92,11 @@ class HistoryCultureAgent(Agent):
     system_prompt_file = "history_culture/system.txt"
     schema = CityRecommendationList
 
-
 class FoodCuisineAgent(Agent):
     name = "FoodCuisine"
     prompt_template = "food_cuisine/user.txt"
     system_prompt_file = "food_cuisine/system.txt"
     schema = CityRecommendationList
-
 
 class TransportationAgent(Agent):
     name = "Transportation"
@@ -106,13 +104,11 @@ class TransportationAgent(Agent):
     system_prompt_file = "transportation/system.txt"
     schema = CityRecommendationList
 
-
 class AggregatorAgent(Agent):
     name = "Aggregator"
     prompt_template = "aggregator/user.txt"
     system_prompt_file = "aggregator/system.txt"
     schema = FinalRecommendationList
-
 
 class AdventureAgent(Agent):
     name = "Adventure"
@@ -120,13 +116,11 @@ class AdventureAgent(Agent):
     system_prompt_file = "adventure/system.txt"
     schema = CityRecommendationList
 
-
 class RelaxationAgent(Agent):
     name = "Relaxation"
     prompt_template = "relaxation/user.txt"
     system_prompt_file = "relaxation/system.txt"
     schema = CityRecommendationList
-
 
 class FamilyAgent(Agent):
     name = "Family"
@@ -134,13 +128,11 @@ class FamilyAgent(Agent):
     system_prompt_file = "family/system.txt"
     schema = CityRecommendationList
 
-
 class HoneymoonAgent(Agent):
     name = "Honeymoon"
     prompt_template = "honeymoon/user.txt"
     system_prompt_file = "honeymoon/system.txt"
     schema = CityRecommendationList
-
 
 class SoloAgent(Agent):
     name = "Solo"
@@ -148,13 +140,11 @@ class SoloAgent(Agent):
     system_prompt_file = "solo/system.txt"
     schema = CityRecommendationList
 
-
 class NatureAgent(Agent):
     name = "Nature"
     prompt_template = "nature/user.txt"
     system_prompt_file = "nature/system.txt"
     schema = CityRecommendationList
-
 
 TRAVEL_STYLE_AGENT_MAP: dict[str, type[Agent]] = {
     "adventure":  AdventureAgent,
@@ -167,13 +157,11 @@ TRAVEL_STYLE_AGENT_MAP: dict[str, type[Agent]] = {
     "nature":     NatureAgent,
 }
 
-
 class ItineraryAgent(Agent):
     name = "Itinerary"
     prompt_template = "itinerary/user.txt"
     system_prompt_file = "itinerary/system.txt"
     schema = Itinerary
-
 
 class ChatAgent(Agent):
     name = "Chat"
@@ -188,12 +176,12 @@ class ChatAgent(Agent):
             {"role": "user",   "content": self._render_user_prompt(**kwargs)},
         ]
 
-        logger.info("Agent '%s' starting", self.name)
+        logger.info(f"Agent '{self.name}' starting")
 
         content = await self.openai.chat_completion(
             messages=messages,
             temperature=0.7,
         )
 
-        logger.info("Agent '%s' finished", self.name)
+        logger.info(f"Agent '{self.name}' finished")
         return {"answer": content}
