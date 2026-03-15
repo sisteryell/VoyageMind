@@ -55,33 +55,34 @@ class TravelModel:
             budget=budget,
             duration=duration,
             city_count=city_count,
-            travel_styles=travel_styles,
             session_id=session_id,
         )
 
-        if travel_styles:
-            selected = {
+        selected = (
+            {
                 style: TRAVEL_STYLE_AGENT_MAP[style]
                 for style in travel_styles
                 if style in TRAVEL_STYLE_AGENT_MAP
             }
-        else:
-            selected = TRAVEL_STYLE_AGENT_MAP
+            if travel_styles
+            else TRAVEL_STYLE_AGENT_MAP
+        )
 
-        styles = list(selected.keys())
-        agent_classes = list(selected.values())
-
-        results = await asyncio.gather(
-            *(cls().run(**agent_kwargs) for cls in agent_classes)
+        style_results = await asyncio.gather(
+            *(
+                cls().run(**agent_kwargs, travel_styles=[style])
+                for style, cls in selected.items()
+            )
         )
 
         agent_results = [
             {"agent_name": style, "recommendations": result["recommendations"]}
-            for style, result in zip(styles, results)
+            for style, result in zip(selected, style_results)
         ]
 
         final_result = await AggregatorAgent().run(
             **agent_kwargs,
+            travel_styles=travel_styles,
             agent_results=agent_results,
         )
 
@@ -94,13 +95,10 @@ class TravelModel:
         itinerary_results = await asyncio.gather(
             *(
                 ItineraryAgent().run(
+                    **agent_kwargs,
                     city=rec["city"],
-                    country=country,
-                    budget=budget,
-                    duration=duration,
                     travel_styles=travel_styles,
                     reason=rec["reason"],
-                    session_id=session_id,
                 )
                 for rec in final_recommendations
             )
@@ -113,7 +111,7 @@ class TravelModel:
 
         agent_details = {
             style: result["recommendations"]
-            for style, result in zip(styles, results)
+            for style, result in zip(selected, style_results)
         }
 
         return {
