@@ -31,25 +31,18 @@ class Agent:
     def _render_user_prompt(self, **kwargs: object) -> str:
         return _JINJA_ENV.get_template(self.prompt_template).render(**kwargs)
 
-    def _validate(self, raw: dict, **kwargs: object) -> dict:
-        city_count = kwargs.get("city_count")
-
-        def _from_list(data: list) -> BaseModel:
-            try:
-                if city_count is not None:
-                    return self.schema.from_list(data, city_count=city_count)
-            except TypeError:
-                pass
-            return self.schema.from_list(data)
-
+    def _validate(self, raw: dict) -> dict:
         try:
+            if isinstance(raw, dict) and "error" in raw:
+                raise ValueError(str(raw.get("error") or "Model reported an error"))
+
             if isinstance(raw, list):
                 validated = _from_list(raw)
             elif "days" in raw:
                 validated = self.schema(**raw)
             elif "recommendations" in raw:
                 if isinstance(raw["recommendations"], list):
-                    validated = _from_list(raw["recommendations"])
+                    validated = self.schema.from_list(raw["recommendations"])
                 else:
                     validated = self.schema(**raw)
             elif "cities" in raw:

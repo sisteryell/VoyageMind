@@ -1,20 +1,79 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from enum import Enum
 
+import pycountry
 from pydantic import BaseModel, Field, field_validator
 
 
+COUNTRY_ALIASES: dict[str, str] = {
+    "usa": "US",
+    "u.s.a": "US",
+    "u.s": "US",
+    "us": "US",
+    "uk": "GB",
+    "u.k": "GB",
+    "uae": "AE",
+    "south korea": "KR",
+    "north korea": "KP",
+}
+
+
+def _normalize_country_key(value: str) -> str:
+    cleaned = value.strip().lower().replace(".", "")
+    return re.sub(r"\s+", " ", cleaned)
+
+
+@lru_cache
+def _country_index() -> dict[str, str]:
+    index: dict[str, str] = {}
+    for country in pycountry.countries:
+        canonical = country.name
+        values = [
+            getattr(country, "name", ""),
+            getattr(country, "official_name", ""),
+            getattr(country, "common_name", ""),
+            getattr(country, "alpha_2", ""),
+            getattr(country, "alpha_3", ""),
+        ]
+        for value in values:
+            if value:
+                index[_normalize_country_key(value)] = canonical
+    return index
+
+
+def _resolve_country(value: str) -> str | None:
+    key = _normalize_country_key(value)
+    alias = COUNTRY_ALIASES.get(key)
+    if alias:
+        key = _normalize_country_key(alias)
+    index = _country_index()
+    if key in index:
+        return index[key]
+
+    try:
+        return pycountry.countries.search_fuzzy(value)[0].name
+    except LookupError:
+        return None
+
+
 def _validate_country(v: str) -> str:
-    v = v.strip()
+    v = " ".join(v.strip().split())
     if len(v) < 2:
         raise ValueError("Country name must be at least 2 characters")
     if re.search(r"[<>{}\[\];]", v):
         raise ValueError("Country name contains invalid characters")
-    if not re.search(r"[a-zA-Z]", v):
+    if not re.fullmatch(r"[A-Za-zÀ-ÖØ-öø-ÿ .'-]+", v):
+        raise ValueError("Country name can only contain letters, spaces, apostrophes, dots, and hyphens")
+    if not re.search(r"[A-Za-zÀ-ÖØ-öø-ÿ]", v):
         raise ValueError("Country name must contain letters")
-    return v
+
+    resolved = _resolve_country(v)
+    if not resolved:
+        raise ValueError("Please enter a valid country name")
+    return resolved
 
 
 class CityRecommendation(BaseModel):
