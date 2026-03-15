@@ -42,13 +42,17 @@ VoyageMind/
 ├── config.py             # Settings from .env
 ├── exceptions.py         # Custom error classes
 ├── services.py           # OpenAI client
-├── middleware.py         # Rate limiting
+├── middleware.py         # Rate limiting + request logging
+├── controllers/
+│   └── travel_controller.py
+├── models/
+│   └── travel_model.py
 ├── requirements.txt
-├── .env                  # Your API keys (never commit this)
-├── .env.example          # Template for .env
+├── .env                  # Your API keys
 ├── static/
 │   ├── css/style.css
-│   └── js/main.js
+│   ├── js/main.js
+│   └── favicon.svg
 ├── templates/
 │   └── index.html
 └── prompts/
@@ -81,7 +85,10 @@ cd VoyageMind
 **2. Create a virtual environment**
 ```bash
 python -m venv venv
+# Windows
 venv\Scripts\activate
+# Linux / macOS
+source venv/bin/activate
 ```
 
 **3. Install dependencies**
@@ -115,6 +122,16 @@ Open **http://localhost:8000** in your browser.
 
 ## API Endpoints
 
+### `GET /health`
+Returns app status and version. No auth required.
+
+**Response**
+```json
+{"status": "healthy", "version": "2.0.0"}
+```
+
+---
+
 ### `POST /plan`
 Generate city recommendations and itineraries.
 
@@ -122,24 +139,35 @@ Generate city recommendations and itineraries.
 ```json
 {
   "country": "Japan",
-  "budget": "medium",
-  "duration": 7,
-  "travel_styles": ["solo", "food"]
+  "budget": "mid",
+  "duration": 3,
+  "city_count": 2,
+  "travel_styles": ["solo", "food"],
+  "session_id": null
 }
 ```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `country` | string | — | Destination country (required) |
+| `budget` | string | `"mid"` | One of: `budget`, `mid`, `luxury` |
+| `duration` | int | 3 | Trip length in days (1–30) |
+| `city_count` | int | 2 | Number of cities to recommend (1–5) |
+| `travel_styles` | string[] | [] | Styles from: `adventure`, `relaxation`, `family`, `honeymoon`, `solo`, `culture`, `food`, `nature` |
+| `session_id` | string \| null | null | Optional id for idempotency/tracking |
 
 **Response**
 ```json
 {
   "country": "Japan",
-  "budget": "medium",
+  "budget": "mid",
   "duration": 7,
+  "city_count": 2,
   "travel_styles": ["solo", "food"],
   "recommendations": [
     {
       "city": "Tokyo",
-      "reason": "Best city for solo food exploration",
-      "highlights": ["Tsukiji market", "Ramen street", "Shibuya"]
+      "reason": "Best city for solo food exploration"
     }
   ],
   "itineraries": [
@@ -155,48 +183,93 @@ Generate city recommendations and itineraries.
     }
   ],
   "agent_details": {
-    "solo": [...],
-    "food": [...]
-  }
+    "solo": [{"city": "...", "confidence_score": 0.9, "reason": "..."}],
+    "food": [{"city": "...", "confidence_score": 0.85, "reason": "..."}]
+  },
+  "session_id": "voyage-..."
 }
 ```
 
 ---
 
 ### `POST /chat`
-Ask a follow-up question about a country.
+Ask a follow-up question about a country. Optionally pass `recommendations` from a previous `/plan` for context.
 
 **Request**
 ```json
 {
-  "message": "What is the best time to visit?",
+  "question": "What is the best time to visit?",
   "country": "Japan",
-  "budget": "medium",
+  "budget": "mid",
   "duration": 7,
-  "travel_styles": ["solo"]
+  "travel_styles": ["solo"],
+  "recommendations": []
 }
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `question` | string | Your question (required, max 500 chars) |
+| `country` | string | Destination country |
+| `budget` | string | One of: `budget`, `mid`, `luxury` |
+| `duration` | int | Trip length in days (1–30) |
+| `travel_styles` | string[] | Same as `/plan` |
+| `recommendations` | object[] | Optional; from a previous `/plan` for context |
 
 **Response**
 ```json
 {
-  "response": "The best time to visit Japan is..."
+  "answer": "The best time to visit Japan is..."
 }
 ```
 
 ---
 
 ### `POST /compare`
-Compare two countries for a given travel style.
+Compare two countries for a given travel style. Returns two full plan objects (same shape as `/plan` response).
 
 **Request**
 ```json
 {
   "country_a": "Japan",
   "country_b": "Thailand",
-  "budget": "low",
+  "budget": "mid",
   "duration": 10,
   "travel_styles": ["solo"]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `country_a` | string | First country |
+| `country_b` | string | Second country |
+| `budget` | string | One of: `budget`, `mid`, `luxury` |
+| `duration` | int | Trip length in days (1–30) |
+| `travel_styles` | string[] | Same as `/plan` |
+
+**Response**
+```json
+{
+  "country_a": {
+    "country": "Japan",
+    "budget": "mid",
+    "duration": 10,
+    "city_count": 2,
+    "travel_styles": ["solo"],
+    "recommendations": [...],
+    "itineraries": [...],
+    "agent_details": {...}
+  },
+  "country_b": {
+    "country": "Thailand",
+    "budget": "mid",
+    "duration": 10,
+    "city_count": 2,
+    "travel_styles": ["solo"],
+    "recommendations": [...],
+    "itineraries": [...],
+    "agent_details": {...}
+  }
 }
 ```
 
@@ -205,10 +278,16 @@ Compare two countries for a given travel style.
 ## Environment Variables
 
 | Variable | Required | Default | Description |
-|---|---|---|---|
+|----------|----------|--------|-------------|
 | `OPENAI_API_KEY` | ✅ | — | Your OpenAI API key |
 | `OPENAI_MODEL` | ❌ | `gpt-4o-mini` | Model to use |
-| `LOG_LEVEL` | ❌ | `INFO` | Logging level |
+| `OPENAI_TIMEOUT` | ❌ | 60 | Request timeout (seconds) |
+| `OPENAI_MAX_RETRIES` | ❌ | 3 | Retries with exponential backoff |
+| `APP_NAME` | ❌ | VoyageMind | Application name |
+| `APP_VERSION` | ❌ | 2.0.0 | Application version |
+| `DEBUG` | ❌ | false | Debug mode (keep false in production) |
+| `LOG_LEVEL` | ❌ | INFO | Logging level |
+| `ALLOWED_ORIGINS` | ❌ | * | CORS origins (comma-separated) |
 
 ---
 
