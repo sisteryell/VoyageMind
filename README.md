@@ -161,7 +161,7 @@ Generate city recommendations and itineraries.
 {
   "country": "Japan",
   "budget": "mid",
-  "duration": 7,
+  "duration": 3,
   "city_count": 2,
   "travel_styles": ["solo", "food"],
   "recommendations": [

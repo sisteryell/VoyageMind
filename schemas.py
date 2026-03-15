@@ -46,7 +46,9 @@ def _country_index() -> dict[str, str]:
 
 def _resolve_country(value: str) -> str | None:
     key = _normalize_country_key(value)
-    key = COUNTRY_ALIASES.get(key, key)
+    alias = COUNTRY_ALIASES.get(key)
+    if alias:
+        key = _normalize_country_key(alias)
     index = _country_index()
     if key in index:
         return index[key]

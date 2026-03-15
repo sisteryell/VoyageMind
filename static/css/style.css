@@ -1,4 +1,4 @@
-﻿    /* â”€â”€â”€â”€â”€ Reset & tokens â”€â”€â”€â”€â”€ */
+﻿    /* Reset & tokens */
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     :root {
@@ -30,7 +30,7 @@
       overflow-x: hidden;
     }
 
-    /* â”€â”€â”€â”€â”€ Ambient background glow â”€â”€â”€â”€â”€ */
+    /* Ambient background glow */
     body::before {
       content: '';
       position: fixed;
@@ -50,7 +50,7 @@
       z-index: 0;
     }
 
-    /* â”€â”€â”€â”€â”€ Layout â”€â”€â”€â”€â”€ */
+    /* Layout */
     .wrapper {
       position: relative;
       z-index: 1;
@@ -59,7 +59,7 @@
       padding: 2rem 1.25rem 4rem;
     }
 
-    /* â”€â”€â”€â”€â”€ Header / hero â”€â”€â”€â”€â”€ */
+    /* Header / hero */
     .hero {
       text-align: center;
       padding: 2.5rem 0 1.5rem;
@@ -92,7 +92,7 @@
       margin-top: .5rem;
     }
 
-    /* â”€â”€â”€â”€â”€ Tab bar â”€â”€â”€â”€â”€ */
+    /* Tab bar */
     .tab-bar {
       display: flex;
       gap: 4px;
@@ -130,7 +130,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* â”€â”€â”€â”€â”€ Search card â”€â”€â”€â”€â”€ */
+    /* Search card */
     .search-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -185,7 +185,7 @@
 
     .field select option { background: var(--card); color: var(--text); }
 
-    /* â”€â”€â”€â”€â”€ Travel style chips â”€â”€â”€â”€â”€ */
+    /* Travel style chips */
     .style-chips {
       display: flex;
       flex-wrap: wrap;
@@ -216,7 +216,7 @@
       color: var(--accent2);
     }
 
-    /* â”€â”€â”€â”€â”€ Buttons â”€â”€â”€â”€â”€ */
+    /* Buttons */
     .btn {
       flex-shrink: 0;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -261,7 +261,7 @@
 
     .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
 
-    /* â”€â”€â”€â”€â”€ Error banner â”€â”€â”€â”€â”€ */
+    /* Error banner */
     .error-banner {
       margin-top: 1.25rem;
       background: rgba(248,113,113,.1);
@@ -274,7 +274,7 @@
     }
     .error-banner.visible { display: block; }
 
-    /* â”€â”€â”€â”€â”€ Loading state â”€â”€â”€â”€â”€ */
+    /* Loading state */
     .loading-state {
       display: none;
       flex-direction: column;
@@ -349,7 +349,7 @@
       font-size: .95rem;
     }
 
-    /* â”€â”€â”€â”€â”€ Results â”€â”€â”€â”€â”€ */
+    /* Results */
     .results { display: none; margin-top: 2rem; }
     .results.visible { display: block; }
 
@@ -450,7 +450,7 @@
       font-size: .88rem;
     }
 
-    /* â”€â”€â”€â”€â”€ Itinerary section â”€â”€â”€â”€â”€ */
+    /* Itinerary section */
     .itinerary-section {
       margin-bottom: 2rem;
     }
@@ -561,7 +561,7 @@
       font-weight: 700;
     }
 
-    /* â”€â”€â”€â”€â”€ Agent details (accordion) â”€â”€â”€â”€â”€ */
+    /* Agent details (accordion) */
     .details-section {
       margin-top: 1rem;
     }
@@ -658,7 +658,7 @@
       line-height: 1.5;
     }
 
-    /* â”€â”€â”€â”€â”€ Chat panel â”€â”€â”€â”€â”€ */
+    /* Chat panel */
     .chat-section {
       display: none;
       margin-top: 2rem;
