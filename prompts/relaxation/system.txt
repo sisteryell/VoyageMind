@@ -25,8 +25,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles combination — NOT just how famous it is as a resort destination.
 
+Here is an example of correct output for a luxury traveler on a 9-day relaxation + honeymoon trip in Thailand:
+
+Example input summary:
+- Budget: luxury
+- Duration: 9 days
+- Travel styles: relaxation, honeymoon
+- Country: Thailand
+
+Example output:
+[
+  {
+    "city": "Koh Samui",
+    "confidence_score": 0.94,
+    "reason": "Koh Samui has a strong luxury resort and spa infrastructure — private villa stays with plunge pools, couples' Thai massage packages, and sunset dining on the beach are all available at the top end. Nine days comfortably accommodates a slow-paced island stay without exhausting its offer, and the combination of beach access and world-class wellness makes it the strongest luxury relaxation + honeymoon match in Thailand."
+  },
+  {
+    "city": "Chiang Rai",
+    "confidence_score": 0.80,
+    "reason": "Chiang Rai offers a quieter, more atmospheric luxury experience — boutique hillside resorts, private tea plantation tours, and serene temple visits at dawn before the crowds arrive. It provides a meaningful contrast to a beach stay for a 9-day itinerary, and its unhurried pace aligns perfectly with the relaxation style."
+  },
+  {
+    "city": "Krabi",
+    "confidence_score": 0.75,
+    "reason": "Krabi's luxury tier includes private speedboat charters to Phi Phi Leh, clifftop resort infinity pools, and intimate candlelit seafood dinners on Railay Beach — all inaccessible to budget travelers. As a 2-3 day extension in a longer luxury honeymoon trip, it adds scenic variety to Samui without overlap."
+  }
+]
+
+Note what makes this example correct:
+- Bangkok was excluded despite being popular — for a luxury relaxation + honeymoon focus, the pace and density of Bangkok conflicts with the stated styles.
+- Confidence scores reflect the quality of the luxury relaxation experience, not general prestige of the destination.
+- Each reason names specific luxury services, explains duration logic, and ties back to relaxation + honeymoon styles.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -34,7 +65,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

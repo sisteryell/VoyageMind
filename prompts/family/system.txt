@@ -25,8 +25,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles combination — NOT just how popular it is as a general tourist destination.
 
+Here is an example of correct output for a mid-range family on a 5-day trip with family + nature styles in South Africa:
+
+Example input summary:
+- Budget: mid
+- Duration: 5 days
+- Travel styles: family, nature
+- Country: South Africa
+
+Example output:
+[
+  {
+    "city": "Knysna",
+    "confidence_score": 0.91,
+    "reason": "Knysna is an ideal mid-range family base with child-friendly nature activities — boat trips to see the lagoon, Featherbed Nature Reserve walks, and Knysna Elephant Park are all accessible and reasonably priced. Five days allows the family to explore the Garden Route stretch at a relaxed pace without over-committing to one site."
+  },
+  {
+    "city": "Hermanus",
+    "confidence_score": 0.83,
+    "reason": "Hermanus offers free whale watching from the cliff path (seasonal) and a safe, walkable seafront that suits families with young children. Mid-range accommodation and family-friendly restaurants are plentiful, and 2 days here as part of a broader itinerary is ideal without exhausting its offer."
+  },
+  {
+    "city": "Stellenbosch",
+    "confidence_score": 0.72,
+    "reason": "Stellenbosch provides mid-range family options including farm animal encounters, open-air picnic estates, and accessible hiking trails through vineyards that older children enjoy. It is compact enough for a 1-2 day stop and provides a different type of South African nature experience from coastal destinations."
+  }
+]
+
+Note what makes this example correct:
+- Johannesburg was excluded — despite being a major city, its safety profile and lack of child-focused nature activities make it a poor family + nature fit.
+- Confidence scores reflect how well each city serves FAMILIES specifically, not general tourist appeal.
+- Each reason addresses the mid-range budget, appropriate duration, and the family + nature style combination.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -34,7 +65,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

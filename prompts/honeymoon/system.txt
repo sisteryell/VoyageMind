@@ -25,8 +25,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles combination — NOT just how famous it is as a honeymoon destination.
 
+Here is an example of correct output for a mid-range budget honeymoon couple on a 6-day trip with relaxation + nature styles in Italy:
+
+Example input summary:
+- Budget: mid
+- Duration: 6 days
+- Travel styles: honeymoon, relaxation, nature
+- Country: Italy
+
+Example output:
+[
+  {
+    "city": "Positano",
+    "confidence_score": 0.94,
+    "reason": "Positano offers immediate romance on a mid-range budget — boutique hotels with sea views, cliff-path walks, and candlelit restaurants are all accessible without luxury spending. Six days is perfect to explore the Amalfi coast at a leisurely pace, and its natural cliff-and-sea scenery directly matches the relaxation and nature styles."
+  },
+  {
+    "city": "Orvieto",
+    "confidence_score": 0.81,
+    "reason": "Orvieto is an intimate hilltop town where mid-range couples can stay in converted stone buildings with vineyard views and dine on Umbrian cuisine without overspending. The quiet, uncrowded atmosphere is ideal for a relaxing honeymoon stay, and 2-3 days here complements a coast-based portion of the trip."
+  },
+  {
+    "city": "Lake Como",
+    "confidence_score": 0.76,
+    "reason": "Lake Como's village ferry network and lakeside promenades are freely enjoyed at mid-range — boutique hotels here are affordable outside peak season. The lake's natural scenery provides a romantic backdrop perfectly aligned with the nature and relaxation styles, and 2 days here rounds out a varied honeymoon itinerary."
+  }
+]
+
+Note what makes this example correct:
+- Rome was excluded — it is not the best fit for relaxation or honeymoon on a 6-day trip due to crowds and pace.
+- Each confidence_score reflects fit for THIS couple's budget, duration, and styles — not global honeymoon fame.
+- Reasons explicitly name the romantic atmosphere, budget accessibility, duration logic, and style alignment.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -34,7 +65,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

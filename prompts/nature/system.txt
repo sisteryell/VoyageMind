@@ -25,8 +25,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles combination — NOT just how famous its natural setting is globally.
 
+Here is an example of correct output for a budget traveler on a 6-day nature + adventure trip in Costa Rica:
+
+Example input summary:
+- Budget: budget
+- Duration: 6 days
+- Travel styles: nature, adventure
+- Country: Costa Rica
+
+Example output:
+[
+  {
+    "city": "La Fortuna",
+    "confidence_score": 0.92,
+    "reason": "La Fortuna is the gateway to Arenal Volcano National Park, where public trails and free viewpoints make it accessible on a tight budget. Six days allows for the volcano hike, a visit to the hanging bridges, and a day at the free natural hot springs on the river — all self-guided and low-cost. The area directly serves both the nature and adventure styles."
+  },
+  {
+    "city": "Puerto Viejo",
+    "confidence_score": 0.83,
+    "reason": "Puerto Viejo borders the Gandoca-Manzanillo Wildlife Refuge, which is freely accessible for hiking and snorkeling off its coral reef. It is one of Costa Rica's more affordable coastal towns with budget cabinas and cheap local sodas, and 2-3 days here gives a complete Caribbean nature experience as a contrast to the volcanic highlands."
+  },
+  {
+    "city": "Monteverde",
+    "confidence_score": 0.76,
+    "reason": "Monteverde's cloud forest reserves have budget-tiered entry and offer exceptional wildlife spotting and canopy walks that suit both nature and adventure travelers. It is logistically simple to reach by shared shuttle from La Fortuna, making it a viable stop within a 6-day budget itinerary."
+  }
+]
+
+Note what makes this example correct:
+- San José was excluded — it functions only as a transit hub and does not serve nature or adventure goals for a 6-day itinerary.
+- Each confidence_score weights actual nature proximity and budget accessibility, not tourism fame.
+- Every reason explicitly covers the budget mechanism, duration fit, and nature + adventure style alignment.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -34,7 +65,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

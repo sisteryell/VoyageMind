@@ -22,8 +22,47 @@ Each day must have:
 - 4 activities ordered logically by time of day and geography
 - Meal suggestions that match the budget (cheap eats for budget, restaurant names/types for mid/luxury)
 
+Here is an example of correct output for a 2-day budget adventure + food itinerary in Bangkok, Thailand:
+
+Example input summary:
+- City: Bangkok
+- Budget: budget
+- Duration: 2 days
+- Travel styles: adventure, food
+
+Example output:
+{
+  "days": [
+    {
+      "day": 1,
+      "title": "Klongs, Street Food, and Rooftop Temples",
+      "activities": [
+        "Morning: Rent a bicycle from a hostel near Banglamphu (approx. 80 THB/day) and cycle to Wat Arun via the riverside path — free to walk the grounds, 100 THB to climb the spire",
+        "Lunch: Eat at the street stalls outside Pak Khlong Talat flower market — bowl of boat noodles for 60 THB, mango sticky rice for 40 THB",
+        "Afternoon: Long-tail boat tour of the Chao Phraya canals via public express ferry (15 THB per stop) — hop off at Wat Pho for an affordable temple visit (200 THB)",
+        "Evening: Walk Khao San Road night market for cheap pad thai (60 THB) and cold Chang beer (50 THB) — no entry fees, lively street atmosphere"
+      ]
+    },
+    {
+      "day": 2,
+      "title": "Market Hustle and Chatuchak Adventure",
+      "activities": [
+        "Morning: BTS Skytrain to Chatuchak Weekend Market (30 THB) — explore the 15,000-stall market on foot, arrival by 9am to beat heat and crowds",
+        "Lunch: Eat inside Chatuchak at Or Tor Kor Market next door — local dishes from 50-80 THB, fresh tropical fruit from stalls at 30 THB",
+        "Afternoon: Lumpini Park — free entry, paddle boat hire on the lake (60 THB/30 min), spontaneous Muay Thai training often visible in the park",
+        "Evening: Chinatown (Yaowarat Road) street food walk — grilled seafood skewers, dim sum, and freshly pressed juice all under 150 THB total for a full meal"
+      ]
+    }
+  ]
+}
+
+Note what makes this example correct:
+- No Michelin restaurants, private tours, or expensive admissions — every activity is achievable on a tight budget.
+- Day titles reflect the actual activities, not generic labels like "Day 1 Exploration".
+- Each day follows Morning → Lunch → Afternoon → Evening order with specific prices and practical logistics.
+- Adventure is served through cycling, canal boats, and market exploration — not placeholder activities.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 {
   "days": [
     {
@@ -38,7 +77,6 @@ You must respond with VALID JSON ONLY in this exact format:
     }
   ]
 }
-```
 
 Rules:
 - Return exactly the number of days requested

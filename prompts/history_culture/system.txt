@@ -26,8 +26,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles combination — NOT just how historically important the city is globally.
 
+Here is an example of correct output for a budget solo traveler on a 7-day culture + history trip in Morocco:
+
+Example input summary:
+- Budget: budget
+- Duration: 7 days
+- Travel styles: culture, history, solo
+- Country: Morocco
+
+Example output:
+[
+  {
+    "city": "Fes",
+    "confidence_score": 0.94,
+    "reason": "Fes el-Bali is one of the world's best-preserved medieval medinas and almost entirely free to explore — the tanneries, madrasas, and souks are accessed on foot with no ticket required. Seven days comfortably covers Fes and a day trip to Meknes, and the city's well-trodden solo backpacker routes and cheap riads make it ideal for a budget solo culture traveler."
+  },
+  {
+    "city": "Marrakech",
+    "confidence_score": 0.82,
+    "reason": "Marrakech's Djemaa el-Fna square and surrounding medina offer immense cultural depth at low or no cost — most historic mosques and street performances are free. It is walkable and well-documented for solo exploration, and 2-3 days here within a 7-day itinerary provides a strong cultural contrast to the more academic atmosphere of Fes."
+  },
+  {
+    "city": "Meknes",
+    "confidence_score": 0.73,
+    "reason": "Meknes is an underrated imperial city where the major monuments — Bab Mansour, Heri es-Souani, and Moulay Ismail Mausoleum — are accessible for very little or free. As an easy day trip or overnight from Fes, it extends the cultural itinerary without adding cost, and its authenticity suits a solo traveler seeking history without tourist crowds."
+  }
+]
+
+Note what makes this example correct:
+- Casablanca was excluded — it is a modern business city and the weakest cultural + history fit for a budget solo traveler.
+- Confidence scores reflect cultural and historic density relative to budget accessibility, not global tourism volume.
+- Each reason names free or low-cost sites, confirms duration logic, and addresses the solo + culture + history style directly.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -35,7 +66,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

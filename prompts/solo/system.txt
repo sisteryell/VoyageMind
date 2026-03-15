@@ -25,8 +25,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles combination — NOT just how safe or popular it is globally.
 
+Here is an example of correct output for a budget solo traveler on a 4-day trip with culture + food styles in Japan:
+
+Example input summary:
+- Budget: budget
+- Duration: 4 days
+- Travel styles: solo, culture, food
+- Country: Japan
+
+Example output:
+[
+  {
+    "city": "Osaka",
+    "confidence_score": 0.95,
+    "reason": "Osaka has one of Japan's best budget solo-travel infrastructures — cheap hostels with social common areas, abundant street food in Dotonbori and Kuromon Market, and free or low-cost cultural sites like Osaka Castle grounds. Four days is ideal to cover the main cultural and food districts without rushing, and the city's grid layout makes independent navigation easy."
+  },
+  {
+    "city": "Kyoto",
+    "confidence_score": 0.87,
+    "reason": "Kyoto's major temples and shrines are affordable or free to enter, and its street food scene in Nishiki Market suits a budget traveler well. The city is extremely walkable and well-documented for solo exploration, with 4 days providing enough time for the main cultural districts without feeling rushed."
+  },
+  {
+    "city": "Hiroshima",
+    "confidence_score": 0.74,
+    "reason": "Hiroshima offers deep cultural history at very low cost — the Peace Memorial Museum has minimal entry fees, and Miyajima Island is reachable by affordable ferry. It is a natural 1-2 day add-on for a solo cultural traveler on this itinerary, and solo dining at local okonomiyaki restaurants is comfortable and cheap."
+  }
+]
+
+Note what makes this example correct:
+- Tokyo was excluded — while famous, its cost of solo travel is higher than these options, making it a poor budget fit.
+- Confidence scores reward cultural density and solo-friendly infrastructure, not just global popularity.
+- Every reason ties back to budget, solo navigation, duration logic, and the culture + food style alignment.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -34,7 +65,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

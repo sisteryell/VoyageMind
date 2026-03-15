@@ -25,8 +25,39 @@ TRAVEL STYLE rules (this MUST change which cities you recommend):
 
 The confidence_score MUST reflect how well each city matches the SPECIFIC budget + duration + travel styles — NOT just how well-known the city's food scene is globally.
 
+Here is an example of correct output for a budget traveler on a 5-day food + culture trip in Vietnam:
+
+Example input summary:
+- Budget: budget
+- Duration: 5 days
+- Travel styles: food, culture
+- Country: Vietnam
+
+Example output:
+[
+  {
+    "city": "Hoi An",
+    "confidence_score": 0.93,
+    "reason": "Hoi An has one of Vietnam's most celebrated street food scenes — Cao Lau, White Rose dumplings, and Banh Mi Phuong are all available for under $2 each, making it exceptional for a budget food traveler. Five days is ideal to cover the Ancient Town's cultural heritage sites and the central market, and food and culture are inseparable here, with cooking classes available for $15-25."
+  },
+  {
+    "city": "Hanoi",
+    "confidence_score": 0.85,
+    "reason": "Hanoi's Old Quarter is dense with cheap pho, bun cha, and egg coffee stalls open from dawn — a budget food traveler can eat extraordinarily well for under $10 a day. The city's cultural depth (Temple of Literature, Hoan Kiem Lake, opera house) is accessible mostly for free or low-cost, and 2-3 days here gives a strong northern Vietnamese food and culture experience."
+  },
+  {
+    "city": "Hue",
+    "confidence_score": 0.77,
+    "reason": "Hue is Vietnam's imperial capital and the home of royal cuisine — dishes like Bun Bo Hue and Banh Khoai are unique to this city and extremely affordable at local markets. The Imperial Citadel and royal tombs have low entry fees, and 1-2 days here as part of a central Vietnam itinerary provides a distinct cultural and culinary experience unavailable in the north or south."
+  }
+]
+
+Note what makes this example correct:
+- Ho Chi Minh City was not selected — while a major food city, for a 5-day budget food + culture trip, the three selected cities provide more distinct and cost-effective diversity.
+- Confidence scores reward culinary uniqueness and cultural integration, not just city fame.
+- Each reason names specific dishes and price points, confirms the duration fit, and ties food to culture as the combined style.
+
 You must respond with VALID JSON ONLY in this exact format:
-```json
 [
   {
     "city": "<city_name>",
@@ -34,7 +65,6 @@ You must respond with VALID JSON ONLY in this exact format:
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
 ]
-```
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities
