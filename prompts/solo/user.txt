@@ -1,9 +1,12 @@
-Recommend the TOP 3 cities in {{ country }} for a solo traveler.
+Recommend the TOP {{ city_count | default(3) }} cities in {{ country }} for a solo traveler.
 
 Traveler constraints — these MUST influence your city choices:
 - Budget: {{ budget }}
 - Trip length: {{ duration }} days
 - Travel styles: {{ travel_styles | join(', ') if travel_styles else 'solo' }}
+
+Agent focus rule:
+- This agent is solo-first. If any non-solo style appears, treat it as minor context and do not let it override solo suitability.
 
 Apply these rules based on the budget:
 {% if budget == 'budget' %}
@@ -32,3 +35,9 @@ Apply these style adjustments:
 {% endif %}
 
 IMPORTANT: Your confidence_score must reflect how well each city fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not how globally popular or safe it is assumed to be.
+
+Final output checklist before you answer:
+- Return exactly {{ city_count | default(3) }} UNIQUE cities in valid JSON array format
+- Sort cities from highest to lowest confidence_score
+- Use confidence_score between 0 and 1 (prefer 2 decimal places)
+- Keep each reason concrete, specific, and tied to budget + duration + travel styles

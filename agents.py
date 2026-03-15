@@ -1,3 +1,4 @@
+import inspect
 import json
 import logging
 from pathlib import Path
@@ -25,36 +26,43 @@ class Agent:
     def __init__(self) -> None:
         self.openai = OpenAIClient.get_instance()
 
-    def _load_system_prompt(self) -> str:
-        return (_PROMPTS_DIR / self.system_prompt_file).read_text(encoding="utf-8").strip()
+    def _load_system_prompt(self, **kwargs: object) -> str:
+        return _JINJA_ENV.get_template(self.system_prompt_file).render(**kwargs).strip()
 
     def _render_user_prompt(self, **kwargs: object) -> str:
         return _JINJA_ENV.get_template(self.prompt_template).render(**kwargs)
 
-    def _validate(self, raw: dict) -> dict:
+    def _from_list(self, data: list, city_count: int | None = None) -> BaseModel:
+        """Delegate to self.schema.from_list, forwarding city_count when supported."""
+        sig = inspect.signature(self.schema.from_list)
+        if "city_count" in sig.parameters and city_count is not None:
+            return self.schema.from_list(data, city_count=city_count)
+        return self.schema.from_list(data)
+
+    def _validate(self, raw: dict, city_count: int | None = None) -> dict:
         try:
             if isinstance(raw, dict) and "error" in raw:
                 raise ValueError(str(raw.get("error") or "Model reported an error"))
 
             if isinstance(raw, list):
-                validated = self.schema.from_list(raw)
+                validated = self._from_list(raw, city_count)
             elif "days" in raw:
                 validated = self.schema(**raw)
             elif "recommendations" in raw:
                 if isinstance(raw["recommendations"], list):
-                    validated = self.schema.from_list(raw["recommendations"])
+                    validated = self._from_list(raw["recommendations"], city_count)
                 else:
                     validated = self.schema(**raw)
             elif "cities" in raw:
-                validated = self.schema.from_list(raw["cities"])
+                validated = self._from_list(raw["cities"], city_count)
             elif "result" in raw:
-                validated = self.schema.from_list(raw["result"])
+                validated = self._from_list(raw["result"], city_count)
             elif "response" in raw:
-                validated = self.schema.from_list(raw["response"])
+                validated = self._from_list(raw["response"], city_count)
             else:
                 list_values = [v for v in raw.values() if isinstance(v, list)]
                 if list_values:
-                    validated = self.schema.from_list(list_values[0])
+                    validated = self._from_list(list_values[0], city_count)
                 else:
                     raise ValueError(f"Unexpected response shape: {list(raw.keys())}")
             return validated.model_dump()
@@ -65,11 +73,11 @@ class Agent:
         kwargs.pop("session_id", None)
 
         messages = [
-            {"role": "system", "content": self._load_system_prompt()},
-            {"role": "user",   "content": self._render_user_prompt(**kwargs)},
+            {"role": "system", "content": self._load_system_prompt(**kwargs)},
+            {"role": "user", "content": self._render_user_prompt(**kwargs)},
         ]
 
-        logger.info("Agent '%s' starting", self.name)
+        logger.info(f"Agent '{self.name}' starting")
 
         try:
             content = await self.openai.chat_completion(
@@ -81,8 +89,8 @@ class Agent:
         except json.JSONDecodeError as exc:
             raise AgentError(self.name, f"LLM returned invalid JSON: {exc}") from exc
 
-        validated = self._validate(result)
-        logger.info("Agent '%s' finished", self.name)
+        validated = self._validate(result, city_count=kwargs.get("city_count"))
+        logger.info(f"Agent '{self.name}' finished")
         return validated
 
 
@@ -92,13 +100,11 @@ class HistoryCultureAgent(Agent):
     system_prompt_file = "history_culture/system.txt"
     schema = CityRecommendationList
 
-
 class FoodCuisineAgent(Agent):
     name = "FoodCuisine"
     prompt_template = "food_cuisine/user.txt"
     system_prompt_file = "food_cuisine/system.txt"
     schema = CityRecommendationList
-
 
 class TransportationAgent(Agent):
     name = "Transportation"
@@ -106,13 +112,11 @@ class TransportationAgent(Agent):
     system_prompt_file = "transportation/system.txt"
     schema = CityRecommendationList
 
-
 class AggregatorAgent(Agent):
     name = "Aggregator"
     prompt_template = "aggregator/user.txt"
     system_prompt_file = "aggregator/system.txt"
     schema = FinalRecommendationList
-
 
 class AdventureAgent(Agent):
     name = "Adventure"
@@ -120,13 +124,11 @@ class AdventureAgent(Agent):
     system_prompt_file = "adventure/system.txt"
     schema = CityRecommendationList
 
-
 class RelaxationAgent(Agent):
     name = "Relaxation"
     prompt_template = "relaxation/user.txt"
     system_prompt_file = "relaxation/system.txt"
     schema = CityRecommendationList
-
 
 class FamilyAgent(Agent):
     name = "Family"
@@ -134,13 +136,11 @@ class FamilyAgent(Agent):
     system_prompt_file = "family/system.txt"
     schema = CityRecommendationList
 
-
 class HoneymoonAgent(Agent):
     name = "Honeymoon"
     prompt_template = "honeymoon/user.txt"
     system_prompt_file = "honeymoon/system.txt"
     schema = CityRecommendationList
-
 
 class SoloAgent(Agent):
     name = "Solo"
@@ -148,13 +148,11 @@ class SoloAgent(Agent):
     system_prompt_file = "solo/system.txt"
     schema = CityRecommendationList
 
-
 class NatureAgent(Agent):
     name = "Nature"
     prompt_template = "nature/user.txt"
     system_prompt_file = "nature/system.txt"
     schema = CityRecommendationList
-
 
 TRAVEL_STYLE_AGENT_MAP: dict[str, type[Agent]] = {
     "adventure":  AdventureAgent,
@@ -167,13 +165,11 @@ TRAVEL_STYLE_AGENT_MAP: dict[str, type[Agent]] = {
     "nature":     NatureAgent,
 }
 
-
 class ItineraryAgent(Agent):
     name = "Itinerary"
     prompt_template = "itinerary/user.txt"
     system_prompt_file = "itinerary/system.txt"
     schema = Itinerary
-
 
 class ChatAgent(Agent):
     name = "Chat"
@@ -184,16 +180,16 @@ class ChatAgent(Agent):
         kwargs.pop("session_id", None)
 
         messages = [
-            {"role": "system", "content": self._load_system_prompt()},
+            {"role": "system", "content": self._load_system_prompt(**kwargs)},
             {"role": "user",   "content": self._render_user_prompt(**kwargs)},
         ]
 
-        logger.info("Agent '%s' starting", self.name)
+        logger.info(f"Agent '{self.name}' starting")
 
         content = await self.openai.chat_completion(
             messages=messages,
             temperature=0.7,
         )
 
-        logger.info("Agent '%s' finished", self.name)
+        logger.info(f"Agent '{self.name}' finished")
         return {"answer": content}
