@@ -33,12 +33,18 @@ class Agent:
 
     def _validate(self, raw: dict) -> dict:
         try:
+            if isinstance(raw, dict) and "error" in raw:
+                raise ValueError(str(raw.get("error") or "Model reported an error"))
+
             if isinstance(raw, list):
                 validated = self.schema.from_list(raw)
             elif "days" in raw:
                 validated = self.schema(**raw)
             elif "recommendations" in raw:
-                validated = self.schema(**raw)
+                if isinstance(raw["recommendations"], list):
+                    validated = self.schema.from_list(raw["recommendations"])
+                else:
+                    validated = self.schema(**raw)
             elif "cities" in raw:
                 validated = self.schema.from_list(raw["cities"])
             elif "result" in raw:
