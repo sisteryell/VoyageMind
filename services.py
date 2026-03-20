@@ -53,7 +53,8 @@ class OpenAIClient:
         """Send a chat completion request with exponential-backoff retries.
 
         Returns the assistant message content as a string.  Raises
-        ``OpenAIClientError`` after all retry attempts are exhausted.
+        ``OpenAIClientError`` if all retries are exhausted or if the
+        model returns empty/missing content (e.g. tool-call responses).
         """
         kwargs: dict[str, Any] = {
             "model": self.model,
@@ -67,7 +68,14 @@ class OpenAIClient:
         for attempt in range(1, self._max_retries + 1):
             try:
                 response = await self.client.chat.completions.create(**kwargs)
-                return response.choices[0].message.content
+                content = response.choices[0].message.content
+                if not content:
+                    raise OpenAIClientError(
+                        "Model returned empty content — possibly a tool-call or refusal response"
+                    )
+                return content
+            except OpenAIClientError:
+                raise
             except Exception as exc:
                 last_error = exc
                 wait = 2 ** attempt

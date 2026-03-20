@@ -171,7 +171,7 @@ class CityRecommendationList(BaseModel):
         """Build from a raw list of dicts, optionally capping to *city_count*."""
         recommendations = [CityRecommendation(**item) for item in data]
         if city_count is not None:
-            target = max(1, min(5, int(city_count)))
+            target = max(1, min(3, int(city_count)))
             recommendations = recommendations[:target]
         return cls(recommendations=recommendations)
 
