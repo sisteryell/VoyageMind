@@ -90,7 +90,7 @@ class CityRecommendation(BaseModel):
 
 
 class CityRecommendationList(BaseModel):
-    recommendations: list[CityRecommendation] = Field(..., min_length=1, max_length=5)
+    recommendations: list[CityRecommendation] = Field(..., min_length=1, max_length=3)
 
     @classmethod
     def from_list(cls, data: list) -> CityRecommendationList:
@@ -110,7 +110,7 @@ class FinalRecommendation(BaseModel):
 
 
 class FinalRecommendationList(BaseModel):
-    recommendations: list[FinalRecommendation] = Field(..., min_length=1, max_length=5)
+    recommendations: list[FinalRecommendation] = Field(..., min_length=1, max_length=3)
 
     @classmethod
     def from_list(cls, data: list) -> FinalRecommendationList:
@@ -152,7 +152,7 @@ class PlanRequest(BaseModel):
     country: str = Field(..., min_length=1, max_length=100)
     budget: str = Field("mid")
     duration: int = Field(5, ge=1, le=30)
-    city_count: int = Field(2, ge=1, le=5)
+    city_count: int = Field(2, ge=1, le=3)
     travel_styles: list[str] = Field(default_factory=list)
     session_id: str | None = Field(default=None)
 
@@ -212,6 +212,39 @@ class ChatRequest(BaseModel):
     def sanitize_country(cls, v: str) -> str:
         return _validate_country(v)
 
+    @field_validator("duration")
+    @classmethod
+    def valid_duration(cls, v: int) -> int:
+        if not 1 <= v <= 30:
+            raise ValueError("Duration must be between 1 and 30 days")
+        return v
+
+    @field_validator("budget")
+    @classmethod
+    def valid_budget(cls, v: str) -> str:
+        v = v.strip().lower()
+        try:
+            return Budget(v).value
+        except ValueError:
+            raise ValueError(f"Budget must be one of: {', '.join(b.value for b in Budget)}")
+
+    @field_validator("travel_styles")
+    @classmethod
+    def valid_styles(cls, v: list[str]) -> list[str]:
+        cleaned = [s.strip().lower() for s in v if s.strip()]
+        invalid = [s for s in cleaned if s not in TravelStyle._value2member_map_]
+        if invalid:
+            raise ValueError(f"Invalid travel styles: {invalid}. Choose from: {', '.join(s.value for s in TravelStyle)}")
+        return cleaned
+
+    @field_validator("question")
+    @classmethod
+    def valid_question(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Question cannot be empty")
+        return v
+
 
 class ChatResponse(BaseModel):
     answer: str
@@ -228,3 +261,28 @@ class CompareRequest(BaseModel):
     @classmethod
     def sanitize_country(cls, v: str) -> str:
         return _validate_country(v)
+
+    @field_validator("duration")
+    @classmethod
+    def valid_duration(cls, v: int) -> int:
+        if not 1 <= v <= 30:
+            raise ValueError("Duration must be between 1 and 30 days")
+        return v
+
+    @field_validator("budget")
+    @classmethod
+    def valid_budget(cls, v: str) -> str:
+        v = v.strip().lower()
+        try:
+            return Budget(v).value
+        except ValueError:
+            raise ValueError(f"Budget must be one of: {', '.join(b.value for b in Budget)}")
+
+    @field_validator("travel_styles")
+    @classmethod
+    def valid_styles(cls, v: list[str]) -> list[str]:
+        cleaned = [s.strip().lower() for s in v if s.strip()]
+        invalid = [s for s in cleaned if s not in TravelStyle._value2member_map_]
+        if invalid:
+            raise ValueError(f"Invalid travel styles: {invalid}. Choose from: {', '.join(s.value for s in TravelStyle)}")
+        return cleaned
