@@ -1,4 +1,4 @@
-﻿    /* =========================================================
+    /* =========================================================
        VoyageMind — vanilla JS
     ========================================================= */
 
@@ -45,7 +45,22 @@
         .map(c => c.dataset.style);
     }
 
-    /*  step animation  */
+    function extractDetail(data) {
+      if (!data) return 'Request failed';
+      if (typeof data.detail === 'string') return data.detail;
+      if (Array.isArray(data.detail)) {
+        return data.detail
+          .map(e => {
+            const loc = (e.loc || []).filter(p => p !== 'body').join(' → ');
+            const msg = (e.msg || 'Invalid value').replace(/^Value error,\s*/i, '');
+            return loc ? `${loc}: ${msg}` : msg;
+          })
+          .join('; ');
+      }
+      return 'Request failed';
+    }
+
+
     const STYLE_META = {
       adventure:  { emoji: '\u{1F3D4}', label: 'Adventure'  },
       relaxation: { emoji: '\u{1F334}', label: 'Relaxation' },
@@ -101,14 +116,18 @@
     let _lastPlan = null;
 
     async function planTravel() {
-      const country  = document.getElementById('country').value.trim();
-      const budget   = document.getElementById('budget').value;
-      const duration = (v => Number.isNaN(v) ? 5 : v)(parseInt(document.getElementById('duration').value, 10));
-      const cityCount = (v => Number.isNaN(v) ? 2 : Math.min(5, Math.max(1, v)))(parseInt(document.getElementById('cityCount').value, 10));
-      const styles   = getStyles('styleChips');
+      const country   = document.getElementById('country').value.trim();
+      const budget    = document.getElementById('budget').value;
+      const durationRaw  = parseInt(document.getElementById('duration').value, 10);
+      const cityRaw      = parseInt(document.getElementById('cityCount').value, 10);
+      const duration  = Number.isNaN(durationRaw) ? 5 : durationRaw;
+      const cityCount = Number.isNaN(cityRaw)     ? 2 : cityRaw;
+      const styles    = getStyles('styleChips');
 
       showError('errorBanner', '');
-      if (!country) { showError('errorBanner', 'Please enter a country name.'); return; }
+      if (!country)                          { showError('errorBanner', 'Please enter a country name.'); return; }
+      if (duration < 1 || duration > 30)     { showError('errorBanner', 'Days must be between 1 and 30.'); return; }
+      if (cityCount < 1 || cityCount > 3)    { showError('errorBanner', 'Cities must be between 1 and 3.'); return; }
 
       document.getElementById('resultsSection').classList.remove('visible');
       document.getElementById('chatSection').classList.remove('visible');
@@ -122,7 +141,7 @@
           body: JSON.stringify({ country, budget, duration, city_count: cityCount, travel_styles: styles }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Request failed');
+        if (!res.ok) throw new Error(extractDetail(data));
         _lastPlan = data;
         renderResults(data);
       } catch(e) {
@@ -258,7 +277,7 @@
         });
         const data = await res.json();
         document.getElementById(typingId)?.remove();
-        if (!res.ok) throw new Error(data.detail || 'Chat error');
+        if (!res.ok) throw new Error(extractDetail(data) || 'Chat error');
         // render markdown for assistant reply
         const bubble = document.createElement('div');
         bubble.className = 'chat-msg assistant chat-md';
@@ -284,6 +303,7 @@
 
       showError('compareError', '');
       if (!cA || !cB) { showError('compareError', 'Please enter both country names.'); return; }
+      if (dur < 1 || dur > 30) { showError('compareError', 'Days must be between 1 and 30.'); return; }
 
       document.getElementById('compareGrid').innerHTML = '';
       document.getElementById('compareLoading').classList.add('visible');
@@ -295,7 +315,7 @@
           body: JSON.stringify({ country_a: cA, country_b: cB, budget: bud, duration: dur, travel_styles: sty }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Compare failed');
+        if (!res.ok) throw new Error(extractDetail(data) || 'Compare failed');
         renderCompare(data);
       } catch(e) {
         showError('compareError', e.message);
