@@ -1,7 +1,14 @@
+"""OpenAI client singleton with exponential-backoff retries.
+
+A single AsyncOpenAI instance is shared across all agents to avoid
+creating redundant HTTP connections.  The double-checked locking in
+``__new__`` guarantees thread-safe lazy initialization.
+"""
+
 import asyncio
 import logging
 from threading import Lock
-from typing import Any, Dict, Optional
+from typing import Any
 
 from openai import AsyncOpenAI
 
@@ -12,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIClient:
-    """Singleton wrapper around AsyncOpenAI with exponential-backoff retries."""
+    """Singleton wrapper around ``AsyncOpenAI`` with automatic retries."""
 
-    _instance: Optional["OpenAIClient"] = None
+    _instance: "OpenAIClient | None" = None
     _lock = Lock()
 
     def __new__(cls) -> "OpenAIClient":
@@ -27,6 +34,8 @@ class OpenAIClient:
         return cls._instance
 
     def _init(self) -> None:
+        """One-time initialization called from ``__new__`` (not ``__init__``
+        to prevent re-running on subsequent ``cls()`` calls)."""
         settings = get_settings()
         self.client = AsyncOpenAI(
             api_key=settings.openai_api_key,
@@ -37,11 +46,16 @@ class OpenAIClient:
 
     async def chat_completion(
         self,
-        messages: list[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
-        response_format: Optional[Dict[str, Any]] = None,
+        response_format: dict[str, Any] | None = None,
     ) -> str:
-        kwargs: Dict[str, Any] = {
+        """Send a chat completion request with exponential-backoff retries.
+
+        Returns the assistant message content as a string.  Raises
+        ``OpenAIClientError`` after all retry attempts are exhausted.
+        """
+        kwargs: dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "temperature": temperature,
@@ -49,7 +63,7 @@ class OpenAIClient:
         if response_format:
             kwargs["response_format"] = response_format
 
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
         for attempt in range(1, self._max_retries + 1):
             try:
                 response = await self.client.chat.completions.create(**kwargs)
@@ -67,4 +81,5 @@ class OpenAIClient:
 
     @classmethod
     def get_instance(cls) -> "OpenAIClient":
+        """Return the singleton instance, creating it on first call."""
         return cls()

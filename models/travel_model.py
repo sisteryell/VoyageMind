@@ -1,3 +1,14 @@
+"""Business-logic layer that orchestrates the multi-agent travel planning pipeline.
+
+Flow for ``run_plan``:
+    1. Run selected travel-style agents in parallel.
+    2. Feed their results into the AggregatorAgent for ranking.
+    3. Pad recommendations to *city_count* from agent results if needed.
+    4. Run ItineraryAgent in parallel for each recommended city.
+
+``run_chat`` delegates directly to the ChatAgent for free-form Q&A.
+"""
+
 import asyncio
 
 from agents import (
@@ -9,12 +20,16 @@ from agents import (
 
 
 class TravelModel:
+    """Coordinates specialist agents into a complete travel plan or chat answer."""
+
     @staticmethod
     def _ensure_city_count(
         recommendations: list[dict],
         agent_results: list[dict],
         city_count: int,
     ) -> list[dict]:
+        """Guarantee exactly *city_count* recommendations by back-filling
+        from specialist agent results when the aggregator returns fewer."""
         normalized = recommendations[:city_count]
         existing = {rec.get("city", "").strip().lower() for rec in normalized}
 
@@ -50,6 +65,7 @@ class TravelModel:
         travel_styles: list[str],
         session_id: str,
     ) -> dict:
+        """Execute the full plan pipeline: style agents → aggregator → itineraries."""
         agent_kwargs = dict(
             country=country,
             budget=budget,
@@ -71,7 +87,7 @@ class TravelModel:
         style_results = await asyncio.gather(
             *(
                 cls().run(**agent_kwargs, travel_styles=travel_styles)
-                for style, cls in selected.items()
+                for cls in selected.values()
             )
         )
 
@@ -135,6 +151,7 @@ class TravelModel:
         question: str,
         session_id: str,
     ) -> dict:
+        """Send a follow-up question to the ChatAgent with trip context."""
         return await ChatAgent().run(
             country=country,
             budget=budget,

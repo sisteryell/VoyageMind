@@ -1,3 +1,10 @@
+"""Application configuration loaded from environment variables and ``.env``.
+
+``get_settings()`` is cached so the ``.env`` file is read only once.
+``setup_logging()`` configures the root logger and silences noisy
+third-party libraries.
+"""
+
 import logging
 from functools import lru_cache
 
@@ -6,6 +13,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Typed, validated application settings sourced from environment variables."""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -27,10 +36,12 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Return the singleton Settings instance (reads .env on first call)."""
     return Settings()
 
 
 def setup_logging(level: str = "INFO") -> None:
+    """Configure the root logger and suppress noisy HTTP-client loggers."""
     numeric_level = getattr(logging, level.upper(), logging.INFO)
     logging.basicConfig(
         level=numeric_level,

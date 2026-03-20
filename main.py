@@ -1,3 +1,10 @@
+"""FastAPI application factory and global middleware/exception-handler wiring.
+
+This is the ASGI entry point (``uvicorn main:app``).  It configures CORS,
+request logging, rate limiting, and custom error formatting before mounting
+the router and static files.
+"""
+
 import logging
 from contextlib import asynccontextmanager
 
@@ -18,11 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 def _format_validation_error(exc: RequestValidationError) -> str:
+    """Flatten Pydantic validation errors into a single semicolon-separated string.
+
+    Strips the ``Value error, `` prefix that Pydantic v2 prepends to
+    messages raised by ``@field_validator``.
+    """
     messages = []
     for error in exc.errors():
         loc = " → ".join(str(p) for p in error.get("loc", []) if p != "body")
         msg = error.get("msg", "Invalid value")
-        # Strip the "Value error, " prefix Pydantic v2 prepends to @field_validator messages
         msg = msg.removeprefix("Value error, ")
         messages.append(f"{loc}: {msg}" if loc else msg)
     return "; ".join(messages)
@@ -30,9 +41,13 @@ def _format_validation_error(exc: RequestValidationError) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Startup/shutdown hook — configure logging on boot, log on teardown."""
     settings = get_settings()
     setup_logging(settings.log_level)
-    logger.info("%s v%s starting (model=%s)", settings.app_name, settings.app_version, settings.openai_model)
+    logger.info(
+        "%s v%s starting (model=%s)",
+        settings.app_name, settings.app_version, settings.openai_model,
+    )
     yield
     logger.info("VoyageMind shutting down")
 
@@ -61,10 +76,13 @@ app.add_exception_handler(VoyageMindError, voyagemind_exception_handler)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_request, exc: RequestValidationError):
+    """Return user-friendly validation errors instead of raw Pydantic output."""
     return JSONResponse(
         status_code=422,
         content={"detail": _format_validation_error(exc)},
     )
+
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -73,4 +91,5 @@ app.include_router(router)
 
 @app.get("/health")
 async def health():
+    """Lightweight liveness probe — returns app status and version."""
     return {"status": "healthy", "version": settings.app_version}

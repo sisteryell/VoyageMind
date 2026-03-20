@@ -1,3 +1,10 @@
+"""Cross-cutting middleware for request logging and rate limiting.
+
+RequestLoggingMiddleware stamps every request with a short unique ID,
+logs timing information, and catches unhandled exceptions so that internal
+details are never leaked to the client.
+"""
+
 import logging
 import time
 import uuid
@@ -16,6 +23,8 @@ limiter = Limiter(key_func=get_remote_address)
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    """Log every request/response with a unique request ID and elapsed time."""
+
     async def dispatch(self, request: Request, call_next) -> Response:
         request_id = str(uuid.uuid4())[:8]
         request.state.request_id = request_id
@@ -46,6 +55,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
 
 async def voyagemind_exception_handler(_request: Request, exc: VoyageMindError):
+    """Convert application-level exceptions into safe JSON error responses."""
     logger.error("Application error: %s", exc.message)
     return JSONResponse(
         status_code=exc.status_code,

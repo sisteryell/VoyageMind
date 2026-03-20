@@ -95,7 +95,6 @@
       _stepTimer = setInterval(() => {
         if (i < pills.length) {
           pills[i - 1].classList.replace('active', 'done');
-          pills[i - 1].classList.replace('active', 'done');
           pills[i].classList.add('active');
           txt.textContent = i < steps.length - 2
             ? `Running ${STYLE_META[steps[i]]?.label ?? steps[i]} agent\u2026`
@@ -298,7 +297,8 @@
       const cA  = document.getElementById('countryA').value.trim();
       const cB  = document.getElementById('countryB').value.trim();
       const bud = document.getElementById('compareBudget').value;
-      const dur = (v => Number.isNaN(v) ? 5 : v)(parseInt(document.getElementById('compareDuration').value, 10));
+      const durRaw = parseInt(document.getElementById('compareDuration').value, 10);
+      const dur = Number.isNaN(durRaw) ? 5 : durRaw;
       const sty = getStyles('compareStyleChips');
 
       showError('compareError', '');
