@@ -15,6 +15,31 @@ The final reason for each city MUST explicitly explain:
 - Why this city matches the stated travel styles
 - Which agents recommended it and why their combined insight supports the choice
 
+Here is an example of correct output for a traveler with a mid-range budget, 7-day trip, and adventure + nature styles visiting New Zealand:
+
+Example input summary:
+- Budget: mid-range
+- Duration: 7 days
+- Travel styles: adventure, nature
+- Agent recommendations: Queenstown (adventure ×3, nature ×2), Auckland (food ×2, culture ×1), Rotorua (nature ×3, adventure ×1), Milford Sound (nature ×2)
+
+Example output:
+[
+  {
+    "city": "Queenstown",
+    "reason": "Queenstown is the adventure capital of New Zealand and fits a mid-range budget with a wide range of accommodation and activity tiers. Seven days is sufficient to cover its core bungee, skiing, and hiking offerings without rushing. It topped both the adventure and nature agent lists, confirming it as the strongest match for this traveler's styles."
+  },
+  {
+    "city": "Rotorua",
+    "reason": "Rotorua offers geothermal landscapes and Maori cultural experiences that are accessible on a mid-range budget, with most major attractions reachable in 2-3 days — well within the 7-day window. It ranked highest among nature agents and also appeared in the adventure list, making it the second-strongest multi-agent pick aligned to the traveler's stated styles."
+  }
+]
+
+Note what makes this example correct:
+- Auckland was excluded despite two agent votes because food and culture do not match adventure + nature styles.
+- Each reason explicitly addresses budget, duration, and style fit — no generic tourism language.
+- Cities are meaningfully different experiences, not near-duplicates.
+
 You must respond with VALID JSON ONLY in this exact format:
 [
   {
@@ -28,3 +53,6 @@ Rules:
 - Reasons should be specific to this traveler's constraints — avoid generic tourist-brochure language
 - No additional text outside the JSON structure
 - Ensure proper JSON formatting
+- Cities must be UNIQUE and meaningfully different (avoid same-metro or near-duplicate picks)
+- Keep each reason concise (1-3 sentences) and explicitly mention budget + duration + style fit
+- Do not use markdown, code fences, or commentary outside raw JSON

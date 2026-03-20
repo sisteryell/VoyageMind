@@ -31,3 +31,9 @@ Travel style guidance:
 {% endif %}
 
 Make the day titles descriptive and specific to the actual activities planned (not generic like "Day 1: Exploration").
+
+Final output checklist before you answer:
+- Return valid JSON only with exactly {{ duration }} day objects
+- For each day, include exactly 4 activities in order: Morning, Lunch, Afternoon, Evening
+- Ensure activities are realistic in sequence and travel distance within the same day
+- Keep all activity descriptions concrete (no placeholders or generic filler)

@@ -1,9 +1,12 @@
-Recommend the TOP 3 cities in {{ country }} based on how well their transport infrastructure suits this specific traveler.
+Recommend the TOP {{ city_count | default(3) }} cities in {{ country }} based on how well their transport infrastructure suits this specific traveler.
 
 Traveler constraints — these MUST influence your city choices:
 - Budget: {{ budget }}
 - Trip length: {{ duration }} days
 - Travel styles: {{ travel_styles | join(', ') if travel_styles else 'general travel' }}
+
+Agent focus rule:
+- This agent is transportation-first. If any non-transport style appears, treat it as minor context and do not let it override transport suitability.
 
 Apply these rules based on the budget:
 {% if budget == 'budget' %}
@@ -38,3 +41,9 @@ Apply these style adjustments:
 {% endif %}
 
 IMPORTANT: Your confidence_score must reflect how well each city's transport situation fits THIS traveler's budget ({{ budget }}), duration ({{ duration }} days), and styles — not just how well-connected the city is globally.
+
+Final output checklist before you answer:
+- Return exactly {{ city_count | default(3) }} UNIQUE cities in valid JSON array format
+- Sort cities from highest to lowest confidence_score
+- Use confidence_score between 0 and 1 (prefer 2 decimal places)
+- Keep each reason concrete, specific, and tied to budget + duration + travel styles
