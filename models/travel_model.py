@@ -10,13 +10,8 @@ Flow for ``run_plan``:
 """
 
 import asyncio
-
-from agents import (
-    AggregatorAgent,
-    ChatAgent,
-    ItineraryAgent,
-    TRAVEL_STYLE_AGENT_MAP,
-)
+from agents import AggregatorAgent, ChatAgent, ItineraryAgent, TRAVEL_STYLE_AGENT_MAP
+from schemas import PlanResponse
 
 
 class TravelModel:
@@ -64,8 +59,10 @@ class TravelModel:
         city_count: int,
         travel_styles: list[str],
         session_id: str,
-    ) -> dict:
-        """Execute the full plan pipeline: style agents → aggregator → itineraries."""
+    ) -> PlanResponse:
+        """
+        Execute the full plan pipeline: style agents → aggregator → itineraries.
+        """
         agent_kwargs = dict(
             country=country,
             budget=budget,
@@ -73,29 +70,39 @@ class TravelModel:
             city_count=city_count,
             session_id=session_id,
         )
+        
 
-        selected = (
-            {
-                style: TRAVEL_STYLE_AGENT_MAP[style]
-                for style in travel_styles
-                if style in TRAVEL_STYLE_AGENT_MAP
-            }
-            if travel_styles
-            else TRAVEL_STYLE_AGENT_MAP
-        )
+        # select agents based on requested travel styles, or run all if none specified
+        selected = {}
+        if travel_styles:
+            for style in travel_styles:
+                if style in TRAVEL_STYLE_AGENT_MAP:
+                    selected[style] = TRAVEL_STYLE_AGENT_MAP[style]
+        else:
+            selected = TRAVEL_STYLE_AGENT_MAP
 
-        style_results = await asyncio.gather(
-            *(
-                cls().run(**agent_kwargs, travel_styles=travel_styles)
-                for cls in selected.values()
-            )
-        )
+        # Run selected style agents in parallel and gather their recommendations
+        tasks = []
+        for cls in selected.values():
+            tasks.append(cls().run(**agent_kwargs, travel_styles=travel_styles))
 
-        agent_results = [
-            {"agent_name": style, "recommendations": result["recommendations"]}
-            for style, result in zip(selected, style_results)
-        ]
+        style_results = await asyncio.gather(*(tasks))
 
+
+        # Build agent results for the aggregator, pairing each style with its recommendations
+        agent_results = []
+        styles = list(selected.keys())
+
+        for i in range(len(styles)):
+            style = styles[i]
+            result = style_results[i]
+
+            agent_results.append({
+                "agent_name": style,
+                "recommendations": result["recommendations"],
+            })
+
+        # Run the aggregator to get a final ranked list of recommendations
         final_result = await AggregatorAgent().run(
             **agent_kwargs,
             travel_styles=travel_styles,
@@ -108,29 +115,35 @@ class TravelModel:
             city_count=city_count,
         )
 
-        itinerary_results = await asyncio.gather(
-            *(
-                ItineraryAgent().run(
-                    **agent_kwargs,
-                    city=rec["city"],
-                    travel_styles=travel_styles,
-                    reason=rec["reason"],
-                )
-                for rec in final_recommendations
+
+        # Run itinerary agent
+        itinerary_tasks = []
+        for rec in final_recommendations:
+            tasks = ItineraryAgent().run(
+                **agent_kwargs,
+                city=rec["city"],
+                travel_styles=travel_styles,
+                reason=rec["reason"],
             )
-        )
+            itinerary_tasks.append(tasks)
+        itinerary_results = await asyncio.gather(*(itinerary_tasks))
 
-        itineraries = [
-            {"city": rec["city"], "days": itin["days"]}
-            for rec, itin in zip(final_recommendations, itinerary_results)
-        ]
 
-        agent_details = {
-            style: result["recommendations"]
-            for style, result in zip(selected, style_results)
-        }
+        # Build itineraries with city and day-by-day plan for each recommended city
+        itineraries = []
+        for i in range(len(final_recommendations)):
+            rec = final_recommendations[i]
+            itinerary = itinerary_results[i]
+            itineraries.append({
+                "city": rec["city"],
+                "days": itinerary["days"],
+            })
 
-        return {
+        agent_details = {}
+        for style, result in zip(styles, style_results):
+            agent_details[style] = result["recommendations"]
+
+        result = {
             "country": country,
             "budget": budget,
             "duration": duration,
@@ -140,6 +153,8 @@ class TravelModel:
             "itineraries": itineraries,
             "agent_details": agent_details,
         }
+
+        return PlanResponse(**result, session_id=session_id)
 
     async def run_chat(
         self,

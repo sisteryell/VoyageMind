@@ -130,7 +130,8 @@ def _validate_budget(v: str) -> str:
 def _validate_travel_styles(v: list[str]) -> list[str]:
     """Normalize and validate a list of travel style strings."""
     cleaned = [s.strip().lower() for s in v if s.strip()]
-    invalid = [s for s in cleaned if s not in TravelStyle._value2member_map_]
+    allowed_values = {style.value for style in TravelStyle}
+    invalid = [s for s in cleaned if s not in allowed_values]
     if invalid:
         raise ValueError(
             f"Invalid travel styles: {invalid}. "

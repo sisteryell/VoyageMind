@@ -49,11 +49,11 @@ async def plan_travel(request: Request, plan_request: PlanRequest) -> PlanRespon
         duration=plan_request.duration,
         city_count=plan_request.city_count,
         travel_styles=plan_request.travel_styles,
-        session_id=session_id,
+        session_id=session_id
     )
 
     logger.info("Travel plan complete for %s", country)
-    return PlanResponse(**result, session_id=session_id)
+    return result
 
 
 async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
@@ -98,4 +98,4 @@ async def compare_countries(request: Request, compare_request: CompareRequest) -
         ),
     )
 
-    return {"country_a": result_a, "country_b": result_b}
+    return {"country_a": result_a.model_dump(), "country_b": result_b.model_dump()}
