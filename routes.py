@@ -5,13 +5,12 @@ applies per-endpoint rate limits.  Business logic lives in controllers
 and models — this module only handles wiring.
 """
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Body
 from fastapi.responses import HTMLResponse
 
 from controllers.travel_controller import (
     chat as chat_controller,
     compare_countries as compare_countries_controller,
-    favicon as favicon_controller,
     home as home_controller,
     plan_travel as plan_travel_controller,
 )
@@ -27,15 +26,10 @@ async def home(request: Request):
     return await home_controller(request)
 
 
-@router.get("/favicon.ico", status_code=204)
-async def favicon():
-    """Return empty response for browser favicon requests."""
-    return await favicon_controller()
-
-
 @router.post("/plan", response_model=PlanResponse)
 @limiter.limit("3/minute")
-async def plan_travel(request: Request, plan_request: PlanRequest):
+async def plan_travel(request: Request,
+    plan_request: PlanRequest = Body(...)):
     """Generate city recommendations and day-by-day itineraries."""
     return await plan_travel_controller(request, plan_request)
 

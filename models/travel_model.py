@@ -25,31 +25,50 @@ class TravelModel:
     ) -> list[dict]:
         """Guarantee exactly *city_count* recommendations by back-filling
         from specialist agent results when the aggregator returns fewer."""
-        normalized = recommendations[:city_count]
-        existing = {rec.get("city", "").strip().lower() for rec in normalized}
+        def normalize_city(city: str) -> str:
+            return city.strip().lower()
+        def extract_city(rec: dict) -> str:
+            return str(rec.get("city", "")).strip()
+        def extract_reason(rec: dict) -> str:
+            return str(rec.get("reason", "Selected from specialist agent insights.")).strip()
 
-        if len(normalized) >= city_count:
-            return normalized
+        final_recommendations = []
+        seen_cities = set()
 
+        for rec in recommendations:
+            city = extract_city(rec)
+            if not city:
+                continue
+            key = normalize_city(city)
+            if key in seen_cities:
+                continue
+            final_recommendations.append({
+                "city": city,
+                "reason": extract_reason(rec),
+            })
+            seen_cities.add(key)
+
+            if len(final_recommendations) == city_count:
+                return final_recommendations
+        
         for agent in agent_results:
             for rec in agent.get("recommendations", []):
-                city_name = str(rec.get("city", "")).strip()
-                if not city_name:
+                city = extract_city(rec)
+                if not city:
                     continue
-                key = city_name.lower()
-                if key in existing:
+                key = normalize_city(city)
+                if key in seen_cities:
                     continue
-                normalized.append(
-                    {
-                        "city": city_name,
-                        "reason": str(rec.get("reason", "Selected from specialist agent insights.")).strip(),
-                    }
-                )
-                existing.add(key)
-                if len(normalized) >= city_count:
-                    return normalized
+                final_recommendations.append({
+                    "city": city,
+                    "reason": extract_reason(rec),
+                })
+                seen_cities.add(key)
 
-        return normalized
+                if len(final_recommendations) == city_count:
+                    return final_recommendations
+        
+        return final_recommendations
 
     async def run_plan(
         self,
@@ -58,19 +77,11 @@ class TravelModel:
         duration: int,
         city_count: int,
         travel_styles: list[str],
-        session_id: str,
+        session_id: str
     ) -> PlanResponse:
         """
         Execute the full plan pipeline: style agents → aggregator → itineraries.
         """
-        agent_kwargs = dict(
-            country=country,
-            budget=budget,
-            duration=duration,
-            city_count=city_count,
-            session_id=session_id,
-        )
-        
 
         # select agents based on requested travel styles, or run all if none specified
         selected = {}
@@ -84,8 +95,12 @@ class TravelModel:
         # Run selected style agents in parallel and gather their recommendations
         tasks = []
         for cls in selected.values():
-            tasks.append(cls().run(**agent_kwargs, travel_styles=travel_styles))
-
+            tasks.append(cls().run(
+                country=country,
+                budget=budget,
+                duration=duration,
+                city_count=city_count,
+                travel_styles=travel_styles))
         style_results = await asyncio.gather(*(tasks))
 
 
@@ -104,7 +119,10 @@ class TravelModel:
 
         # Run the aggregator to get a final ranked list of recommendations
         final_result = await AggregatorAgent().run(
-            **agent_kwargs,
+            country=country,
+            budget=budget,
+            duration=duration,
+            city_count=city_count,
             travel_styles=travel_styles,
             agent_results=agent_results,
         )
@@ -120,10 +138,13 @@ class TravelModel:
         itinerary_tasks = []
         for rec in final_recommendations:
             tasks = ItineraryAgent().run(
-                **agent_kwargs,
-                city=rec["city"],
+                country=country,
+                budget=budget,
+                duration=duration,
+                city_count=city_count,
                 travel_styles=travel_styles,
-                reason=rec["reason"],
+                city=rec["city"],
+                reason=rec["reason"]
             )
             itinerary_tasks.append(tasks)
         itinerary_results = await asyncio.gather(*(itinerary_tasks))
@@ -163,8 +184,7 @@ class TravelModel:
         duration: int,
         travel_styles: list[str],
         recommendations: list[dict],
-        question: str,
-        session_id: str,
+        question: str
     ) -> dict:
         """Send a follow-up question to the ChatAgent with trip context."""
         return await ChatAgent().run(
@@ -173,6 +193,5 @@ class TravelModel:
             duration=duration,
             travel_styles=travel_styles,
             recommendations=recommendations,
-            question=question,
-            session_id=session_id,
+            question=question
         )

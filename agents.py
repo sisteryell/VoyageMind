@@ -122,12 +122,32 @@ class Agent:
     # Execution
     # ------------------------------------------------------------------
 
-    async def run(self, **kwargs: object) -> dict:
+    async def run(
+        self,
+        country: str,
+        budget: str,
+        duration: int,
+        city_count: int,
+        travel_styles: list[str],
+        agent_results: list[dict] | None = None,
+        city: str | None = None,
+        reason: str | None = None
+    ) -> dict:
         """Execute the agent: render prompts → call LLM (JSON mode) → validate."""
-        kwargs.pop("session_id", None)
-        messages = self._build_messages(**kwargs)
+        context = {
+            "country": country,
+            "budget": budget,
+            "duration": duration,
+            "city_count": city_count,
+            "travel_styles": travel_styles
+        }
+        for key, value in {"agent_results": agent_results, "city": city, "reason": reason}.items():
+            if value is not None:
+                context[key] = value
 
-        logger.info("Agent '%s' starting", self.name)
+        messages = self._build_messages(**context)
+
+        logger.info(f"Agent '{self.name}' starting")
 
         try:
             content = await self.openai.chat_completion(
@@ -139,8 +159,8 @@ class Agent:
         except json.JSONDecodeError as exc:
             raise AgentError(self.name, f"LLM returned invalid JSON: {exc}") from exc
 
-        validated = self._validate(result, city_count=kwargs.get("city_count"))
-        logger.info("Agent '%s' finished", self.name)
+        validated = self._validate(result, city_count=city_count)
+        logger.info(f"Agent '{self.name}' finished")
         return validated
 
 
@@ -262,17 +282,32 @@ class ChatAgent(Agent):
     prompt_template = "chat/user.txt"
     system_prompt_file = "chat/system.txt"
 
-    async def run(self, **kwargs: object) -> dict:
+    async def run(
+        self,
+        country: str,
+        budget: str,
+        duration: int,
+        travel_styles: list[str],
+        recommendations: list[dict],
+        question: str
+    ) -> dict:
         """Execute the chat agent: render prompts → call LLM (text mode) → return answer."""
-        kwargs.pop("session_id", None)
-        messages = self._build_messages(**kwargs)
+        context = {
+            "country": country,
+            "budget": budget,
+            "duration": duration,
+            "travel_styles": travel_styles,
+            "recommendations": recommendations,
+            "question": question
+        }
+        messages = self._build_messages(**context)
 
-        logger.info("Agent '%s' starting", self.name)
+        logger.info(f"Agent '{self.name}' starting")
 
         content = await self.openai.chat_completion(
             messages=messages,
             temperature=0.7,
         )
 
-        logger.info("Agent '%s' finished", self.name)
+        logger.info(f"Agent '{self.name}' finished")
         return {"answer": content}
