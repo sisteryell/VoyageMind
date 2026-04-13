@@ -10,7 +10,7 @@ import logging
 import uuid
 
 from fastapi import Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from models.travel_model import TravelModel
@@ -46,8 +46,7 @@ async def plan_travel(request: Request, plan_request: PlanRequest) -> PlanRespon
 
 async def chat(request: Request, chat_request: ChatRequest) -> ChatResponse:
     """Answer a follow-up question in the context of a previous plan."""
-    session_id = f"chat-{uuid.uuid4().hex[:12]}"
-    logger.info(f"Chat question for {chat_request.country}: {chat_request.question}")
+    logger.info(f"Chat question for {chat_request.country}: {chat_request.question}[:80]")
 
     result = await travel_model.run_chat(
         country=chat_request.country,
