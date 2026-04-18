@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from rag_service import CountryRAGService
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -33,6 +34,10 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     setup_logging(settings.log_level)
     logger.info("%s v%s starting (model=%s)", settings.app_name, settings.app_version, settings.openai_model)
+    
+    rag = CountryRAGService.get_instance()
+    rag.initialize()
+    logger.info("Country RAG service initialized")
     yield
     logger.info("VoyageMind shutting down")
 

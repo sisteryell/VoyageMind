@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     openai_timeout: int = Field(60)
     openai_max_retries: int = Field(3)
 
+    openai_embedding_model: str = Field("text-embedding-3-small")
+    rag_similarity_threshold: float = Field(0.35)
+    rag_persist_directory: str = Field("data/chroma_db")
+
     app_name: str = Field("VoyageMind")
     app_version: str = Field("2.0.0")
     debug: bool = Field(False)

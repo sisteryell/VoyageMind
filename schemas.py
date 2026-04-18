@@ -45,6 +45,13 @@ def _country_index() -> dict[str, str]:
 
 
 def _resolve_country(value: str) -> str | None:
+    """Map a user-supplied country string to its canonical pycountry name.
+
+    Resolution tiers:
+    1. Exact match against COUNTRY_ALIASES + cached pycountry index
+    2. pycountry fuzzy search
+    3. RAG similarity search (ChromaDB + OpenAI embeddings)
+    """
     key = _normalize_country_key(value)
     alias = COUNTRY_ALIASES.get(key)
     if alias:
@@ -56,7 +63,18 @@ def _resolve_country(value: str) -> str | None:
     try:
         return pycountry.countries.search_fuzzy(value)[0].name
     except LookupError:
-        return None
+        pass
+
+    try:
+        from rag_service import CountryRAGService
+        rag = CountryRAGService.get_instance()
+        result = rag.resolve_country(value)
+        if result:
+            return result
+    except Exception:
+        pass
+
+    return None
 
 
 def _validate_country(v: str) -> str:
