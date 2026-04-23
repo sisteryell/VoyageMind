@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+from admin_routes import admin_router
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -74,7 +75,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(router)
-
+app.include_router(admin_router)
 
 @app.get("/health")
 async def health():

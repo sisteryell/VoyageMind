@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     openai_embedding_model: str = Field("text-embedding-3-small")
     rag_similarity_threshold: float = Field(0.35)
     rag_persist_directory: str = Field("data/chroma_db")
+    admin_api_key: str = Field(...)
 
     app_name: str = Field("VoyageMind")
     app_version: str = Field("2.0.0")

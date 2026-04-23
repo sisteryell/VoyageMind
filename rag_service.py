@@ -7,6 +7,7 @@ when exact-match and fuzzy-search cannot resolve user input.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from threading import Lock
 from typing import Any
@@ -131,6 +132,135 @@ class CountryRAGService:
             return None
 
         return results["metadatas"][0][0]["canonical_name"]
+
+    @staticmethod
+    def _variant_id(normalized_version: str) -> str:
+        """Derive a deterministic ID from a normalized variant string."""
+        return f"c_{hashlib.sha256(normalized_version.encode()).hexdigest()[:16]}"
+
+    def _find_by_variant(self, normalized_variant: str) -> str | None:
+        """Return the existing entry ID if the variant is already in the collection."""
+        country_id = self._variant_id(normalized_version=normalized_variant)
+        existing = self._collection.get(ids=[country_id])
+        if existing["ids"]:
+            return country_id
+
+        try:
+            search = self._collection.get(
+                where_document={"$contains": normalized_variant},
+                include=["documents"],
+            )
+            for doc_id, doc in zip(search["ids"], search["documents"]):
+                if doc == normalized_variant:
+                    return doc_id
+        except Exception:
+            logger.warning(f"Variant search failed for {normalized_variant}", exc_info=True)
+
+        return None
+
+    def add_entries(self, entries: dict[str, str]) -> dict[str, list[dict]]:
+        import pycountry
+
+        added: list[dict[str, str]] = []
+        already_exist: list[dict[str, str]] = []
+
+        for variant, alpha2 in entries.items():
+            normalized = variant.strip().lower()
+            country = pycountry.countries.get(alpha_2=alpha2)
+            canonical = alpha2
+            if country:
+                canonical = country.name
+
+            existing_id = self._find_by_variant(normalized_variant=normalized)
+            if existing_id:
+                already_exist.append(
+                    {"id": existing_id, "variant": normalized, "canonical_name": canonical}
+                )
+                continue
+
+            entry_id = self._variant_id(normalized_version=normalized)
+            self._collection.add(
+                ids=[entry_id],
+                documents=[normalized],
+                metadatas=[{"canonical_name": canonical}],
+            )
+            added.append({"id": entry_id, "variant": normalized, "canonical_name": canonical})
+
+        logger.info(f"RAG add_entries: {len(added)} added, {len(already_exist)} duplicates")
+        return {"added": added, "already_exist": already_exist}
+    
+    def edit_entry(self, entry_id: str, variant: str, alpha2: str) -> dict[str, str] | None:
+        import pycountry
+
+        existing = self._collection.get(ids=[entry_id])
+        if not existing["ids"]:
+            return None
+
+        country = pycountry.countries.get(alpha_2=alpha2)
+        normalized = variant.strip().lower()
+        canonical = alpha2
+        if country:
+            canonical = country.name
+
+        self._collection.update(
+            ids=[entry_id],
+            documents=[normalized],
+            metadatas=[{"canonical_name": canonical}],
+        )
+
+        logger.info(f"RAG entry updated: {entry_id} -> {normalized} ({canonical})")
+        return {"id": entry_id, "variant": normalized, "canonical_name": canonical}
+
+    def delete_entry(self, entry_id: str) -> dict[str, str] | None:
+        existing = self._collection.get(
+            ids=[entry_id], include=["documents", "metadatas"]
+        )
+
+        if not existing["ids"]:
+            return None
+
+        deleted = {
+            "id": entry_id,
+            "variant": existing["documents"][0],
+            "canonical_name": existing["metadatas"][0]["canonical_name"],
+        }
+        self._collection.delete(ids=[entry_id])
+
+        logger.info(f"RAG entry deleted: {entry_id} ({deleted['variant']})")
+        return deleted
+
+    def list_entries(self, limit: int = 20, offset: int = 0) -> dict:
+        total = self._collection.count()
+        results = self._collection.get(
+            include=["documents", "metadatas"],
+            limit=limit,
+            offset=offset,
+        )
+
+        entries = []
+        for i in range(len(results["ids"])):
+            entry = {
+                "id": results["ids"][i],
+                "variant": results["documents"][i],
+                "canonical_name": results["metadatas"][i]["canonical_name"],
+            }
+            entries.append(entry)
+
+        return {"entries": entries, "total": total, "limit": limit, "offset": offset}
+
+    def delete_all(self) -> int:
+        count = self._collection.count()
+        if count == 0:
+            return 0
+
+        self._client.delete_collection(_COLLECTION_NAME)
+        self._collection = self._client.get_or_create_collection(
+            name=_COLLECTION_NAME,
+            embedding_function=self._embedding_fn,
+            metadata={"hnsw:space": "cosine"},
+        )
+        logger.info(f"RAG collection wiped: {count} entries removed")
+        return count
 
     @classmethod
     def get_instance(cls) -> CountryRAGService:

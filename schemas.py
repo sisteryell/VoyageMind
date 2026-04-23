@@ -308,3 +308,65 @@ class CompareRequest(BaseModel):
         if invalid:
             raise ValueError(f"Invalid travel styles: {invalid}. Choose from: {', '.join(s.value for s in TravelStyle)}")
         return cleaned
+
+class RAGAddRequest(BaseModel):
+    entries: dict[str, str] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Mapping of variant name to ISO alpha-2 country code",
+        json_schema_extra={"example": {"america": "US", "holland": "NL"}},
+    )
+
+    @field_validator("entries")
+    @classmethod
+    def validate_entries(cls, v: dict[str, str]) -> dict[str, str]:
+        validated: dict[str, str] = {}
+        for variant, alpha2 in v.items():
+            variant_clean = variant.strip().lower()
+            if len(variant_clean) < 2:
+                raise ValueError(f"Variant '{variant}' must be at least 2 characters")
+            alpha2_clean = alpha2.strip().upper()
+            country = pycountry.countries.get(alpha_2=alpha2_clean)
+            if not country:
+                raise ValueError(
+                    f"Invalid ISO alpha-2 code '{alpha2}' for variant '{variant}'"
+                )
+            validated[variant_clean] = alpha2_clean
+        return validated
+    
+class RAGEditRequest(BaseModel):
+    variant: str = Field(..., min_length=2, max_length=100)
+    country_code: str = Field(..., min_length=2, max_length=2)
+
+    @field_validator("variant")
+    @classmethod
+    def clean_variant(cls, v: str) -> str:
+        v = v.strip().lower()
+        if len(v) < 2:
+            raise ValueError("Variant must be at least 2 characters")
+        return v
+    
+    @field_validator("country_code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        v = v.strip().upper()
+        country = pycountry.countries.get(alpha_2=v)
+        if not country:
+            raise ValueError(f"Invalid ISO alpha-2 code '{v}'")
+        return v
+    
+class RAGEntryOut(BaseModel):
+    id: str
+    variant: str
+    canonical_name: str
+
+class RAGAddResponse(BaseModel):
+    added: list[RAGEntryOut]
+    already_exist: list[RAGEntryOut]
+
+class RAGListResponse(BaseModel):
+    entries: list[RAGEntryOut]
+    total: int
+    limit: int
+    offset: int
