@@ -34,7 +34,8 @@ Example input summary:
 - Country: Vietnam
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "Hoi An",
     "confidence_score": 0.93,
@@ -50,7 +51,8 @@ Example output:
     "confidence_score": 0.77,
     "reason": "Hue is Vietnam's imperial capital and the home of royal cuisine — dishes like Bun Bo Hue and Banh Khoai are unique to this city and extremely affordable at local markets. The Imperial Citadel and royal tombs have low entry fees, and 1-2 days here as part of a central Vietnam itinerary provides a distinct cultural and culinary experience unavailable in the north or south."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - Ho Chi Minh City was not selected — while a major food city, for a 5-day budget food + culture trip, the three selected cities provide more distinct and cost-effective diversity.
@@ -58,13 +60,15 @@ Note what makes this example correct:
 - Each reason names specific dishes and price points, confirms the duration fit, and ties food to culture as the combined style.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

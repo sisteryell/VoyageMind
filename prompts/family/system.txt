@@ -34,7 +34,8 @@ Example input summary:
 - Country: South Africa
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "Knysna",
     "confidence_score": 0.91,
@@ -50,7 +51,8 @@ Example output:
     "confidence_score": 0.72,
     "reason": "Stellenbosch provides mid-range family options including farm animal encounters, open-air picnic estates, and accessible hiking trails through vineyards that older children enjoy. It is compact enough for a 1-2 day stop and provides a different type of South African nature experience from coastal destinations."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - Johannesburg was excluded — despite being a major city, its safety profile and lack of child-focused nature activities make it a poor family + nature fit.
@@ -58,13 +60,15 @@ Note what makes this example correct:
 - Each reason addresses the mid-range budget, appropriate duration, and the family + nature style combination.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities
