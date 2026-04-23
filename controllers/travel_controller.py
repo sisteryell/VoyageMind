@@ -7,13 +7,7 @@ from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from models.travel_model import TravelModel
-from schemas import (
-    ChatRequest,
-    ChatResponse,
-    CompareRequest,
-    PlanRequest,
-    PlanResponse,
-)
+from schemas import ChatRequest, ChatResponse, CompareRequest, PlanRequest, PlanResponse
 
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
