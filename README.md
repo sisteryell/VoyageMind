@@ -42,7 +42,6 @@ VoyageMind/
 ├── config.py             # Settings from .env
 ├── exceptions.py         # Custom error classes
 ├── services.py           # OpenAI client
-├── middleware.py         # Rate limiting + request logging
 ├── controllers/
 │   └── travel_controller.py
 ├── models/
@@ -108,7 +107,6 @@ APP_NAME = VoyageMind
 APP_VERSION = 2.0.0
 DEBUG = false
 LOG_LEVEL = INFO
-ALLOWED_ORIGINS = *
 ```
 
 **5. Run the app**
@@ -287,7 +285,6 @@ Compare two countries for a given travel style. Returns two full plan objects (s
 | `APP_VERSION` | ❌ | 2.0.0 | Application version |
 | `DEBUG` | ❌ | false | Debug mode (keep false in production) |
 | `LOG_LEVEL` | ❌ | INFO | Logging level |
-| `ALLOWED_ORIGINS` | ❌ | * | CORS origins (comma-separated) |
 
 ---
 
@@ -304,16 +301,6 @@ Itinerary agent builds day-by-day plan for each city
         ↓
 Response returned to browser
 ```
-
----
-
-## Rate Limits
-
-| Endpoint | Limit |
-|---|---|
-| `/plan` | 3 requests/minute |
-| `/chat` | 10 requests/minute |
-| `/compare` | 5 requests/minute |
 
 ---
 

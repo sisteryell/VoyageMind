@@ -34,7 +34,8 @@ Example input summary:
 - Country: Thailand
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "Koh Samui",
     "confidence_score": 0.94,
@@ -50,7 +51,8 @@ Example output:
     "confidence_score": 0.75,
     "reason": "Krabi's luxury tier includes private speedboat charters to Phi Phi Leh, clifftop resort infinity pools, and intimate candlelit seafood dinners on Railay Beach — all inaccessible to budget travelers. As a 2-3 day extension in a longer luxury honeymoon trip, it adds scenic variety to Samui without overlap."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - Bangkok was excluded despite being popular — for a luxury relaxation + honeymoon focus, the pace and density of Bangkok conflicts with the stated styles.
@@ -58,13 +60,15 @@ Note what makes this example correct:
 - Each reason names specific luxury services, explains duration logic, and ties back to relaxation + honeymoon styles.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

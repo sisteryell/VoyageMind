@@ -35,7 +35,8 @@ Example input summary:
 - Country: Morocco
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "Fes",
     "confidence_score": 0.94,
@@ -51,7 +52,8 @@ Example output:
     "confidence_score": 0.73,
     "reason": "Meknes is an underrated imperial city where the major monuments — Bab Mansour, Heri es-Souani, and Moulay Ismail Mausoleum — are accessible for very little or free. As an easy day trip or overnight from Fes, it extends the cultural itinerary without adding cost, and its authenticity suits a solo traveler seeking history without tourist crowds."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - Casablanca was excluded — it is a modern business city and the weakest cultural + history fit for a budget solo traveler.
@@ -59,13 +61,15 @@ Note what makes this example correct:
 - Each reason names free or low-cost sites, confirms duration logic, and addresses the solo + culture + history style directly.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

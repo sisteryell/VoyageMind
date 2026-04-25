@@ -86,12 +86,13 @@ class Agent:
                 response_format={"type": "json_object"},
             )
             result = json.loads(content)
+            validated = self.schema.model_validate(result)
         except json.JSONDecodeError as exc:
             raise AgentError(self.name, f"LLM returned invalid JSON: {exc}") from exc
-
-        validated = self._validate(result, city_count=kwargs.get("city_count"))
+        except Exception as exc:
+            raise AgentError(self.name, f"Validation failed - {exc}") from exc
         logger.info(f"Agent '{self.name}' finished")
-        return validated
+        return validated.model_dump()
 
 
 class HistoryCultureAgent(Agent):

@@ -1,20 +1,10 @@
-# Core Framework
+chromadb==0.4.24
 fastapi==0.115.0
-uvicorn[standard]==0.30.0
-
-# OpenAI
+httpx==0.27.0
+jinja2==3.1.4
+numpy==1.26.4
 openai==1.51.0
-
-# Data Validation & Settings
 pydantic==2.9.0
 pydantic-settings==2.5.0
-
-# Templating
-jinja2==3.1.4
 pycountry==24.6.1
-
-# HTTP
-httpx==0.27.0
-
-# Rate Limiting
-slowapi==0.1.9
+uvicorn[standard]==0.30.0

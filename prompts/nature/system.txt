@@ -34,7 +34,8 @@ Example input summary:
 - Country: Costa Rica
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "La Fortuna",
     "confidence_score": 0.92,
@@ -50,7 +51,8 @@ Example output:
     "confidence_score": 0.76,
     "reason": "Monteverde's cloud forest reserves have budget-tiered entry and offer exceptional wildlife spotting and canopy walks that suit both nature and adventure travelers. It is logistically simple to reach by shared shuttle from La Fortuna, making it a viable stop within a 6-day budget itinerary."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - San José was excluded — it functions only as a transit hub and does not serve nature or adventure goals for a 6-day itinerary.
@@ -58,13 +60,15 @@ Note what makes this example correct:
 - Every reason explicitly covers the budget mechanism, duration fit, and nature + adventure style alignment.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

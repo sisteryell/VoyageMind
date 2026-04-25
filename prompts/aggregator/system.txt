@@ -24,16 +24,18 @@ Example input summary:
 - Agent recommendations: Queenstown (adventure ×3, nature ×2), Auckland (food ×2, culture ×1), Rotorua (nature ×3, adventure ×1), Milford Sound (nature ×2)
 
 Example output:
-[
-  {
-    "city": "Queenstown",
-    "reason": "Queenstown is the adventure capital of New Zealand and fits a mid-range budget with a wide range of accommodation and activity tiers. Seven days is sufficient to cover its core bungee, skiing, and hiking offerings without rushing. It topped both the adventure and nature agent lists, confirming it as the strongest match for this traveler's styles."
-  },
-  {
-    "city": "Rotorua",
-    "reason": "Rotorua offers geothermal landscapes and Maori cultural experiences that are accessible on a mid-range budget, with most major attractions reachable in 2-3 days — well within the 7-day window. It ranked highest among nature agents and also appeared in the adventure list, making it the second-strongest multi-agent pick aligned to the traveler's stated styles."
-  }
-]
+{
+  "recommendations": [
+    {
+      "city": "Queenstown",
+      "reason": "Queenstown is the adventure capital of New Zealand and fits a mid-range budget with a wide range of accommodation and activity tiers. Seven days is sufficient to cover its core bungee, skiing, and hiking offerings without rushing. It topped both the adventure and nature agent lists, confirming it as the strongest match for this traveler's styles."
+    },
+    {
+      "city": "Rotorua",
+      "reason": "Rotorua offers geothermal landscapes and Maori cultural experiences that are accessible on a mid-range budget, with most major attractions reachable in 2-3 days — well within the 7-day window. It ranked highest among nature agents and also appeared in the adventure list, making it the second-strongest multi-agent pick aligned to the traveler's stated styles."
+    }
+  ]
+}
 
 Note what makes this example correct:
 - Auckland was excluded despite two agent votes because food and culture do not match adventure + nature styles.
@@ -41,12 +43,14 @@ Note what makes this example correct:
 - Cities are meaningfully different experiences, not near-duplicates.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
-  {
-    "city": "<city_name>",
-    "reason": "<justification that covers budget fit, duration fit, style fit, and agent agreement>"
-  }
-]
+{
+  "recommendations": [
+    {
+      "city": "<city_name>",
+      "reason": "<justification that covers budget fit, duration fit, style fit, and agent agreement>"
+    }
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count }} cities
