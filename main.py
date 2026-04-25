@@ -46,8 +46,10 @@ async def voyagemind_exception_handler(_request: Request, exc: VoyageMindError):
     logger.error(f"Application error: {exc.message}", exc_info=True)
     return JSONResponse(
         status_code=exc.status_code,
-        content={"default": exc.message}
+        content={"detail": exc.message}
     )
+
+app.add_exception_handler(VoyageMindError, voyagemind_exception_handler)
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(_request: Request, exc: Exception):

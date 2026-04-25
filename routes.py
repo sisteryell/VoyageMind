@@ -19,7 +19,7 @@ async def plan_travel_controller(request: Request, plan_request: PlanRequest):
     return await plan_travel(request, plan_request)
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: Request, chat_request: ChatRequest):
+async def chat_controller(request: Request, chat_request: ChatRequest):
     return await chat(request, chat_request)
 
 @router.post("/compare")
