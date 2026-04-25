@@ -26,8 +26,6 @@ class Settings(BaseSettings):
     app_version: str = Field("2.0.0")
     debug: bool = Field(False)
     log_level: str = Field("INFO")
-    allowed_origins: str = Field("*")
-    rate_limit: str = Field("10/minute")
 
 
 @lru_cache

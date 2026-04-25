@@ -1,20 +1,9 @@
 import asyncio
-
-from agents import (
-    AggregatorAgent,
-    ChatAgent,
-    ItineraryAgent,
-    TRAVEL_STYLE_AGENT_MAP,
-)
-
+from agents import AggregatorAgent, ChatAgent, ItineraryAgent, TRAVEL_STYLE_AGENT_MAP
 
 class TravelModel:
     @staticmethod
-    def _ensure_city_count(
-        recommendations: list[dict],
-        agent_results: list[dict],
-        city_count: int,
-    ) -> list[dict]:
+    def _ensure_city_count(recommendations: list[dict], agent_results: list[dict], city_count: int) -> list[dict]:
         normalized = recommendations[:city_count]
         existing = {rec.get("city", "").strip().lower() for rec in normalized}
 

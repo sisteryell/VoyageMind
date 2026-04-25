@@ -34,7 +34,8 @@ Example input summary:
 - Country: Peru
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "Huaraz",
     "confidence_score": 0.93,
@@ -50,7 +51,8 @@ Example output:
     "confidence_score": 0.71,
     "reason": "Arequipa serves as the gateway to Colca Canyon, which can be reached affordably by local bus for a 2-day trek. The city itself is walkable and safe for solo explorers, making it a good lower-intensity complement to the more strenuous northern options."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - Lima was excluded despite being famous — its adventure offering for a budget solo traveler is weak compared to these options.
@@ -58,13 +60,15 @@ Note what makes this example correct:
 - Reasons explicitly state why the budget works, why the duration is appropriate, and why solo travel is easy.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities

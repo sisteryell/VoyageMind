@@ -34,7 +34,8 @@ Example input summary:
 - Country: Italy
 
 Example output:
-[
+{
+  "recommendations": [
   {
     "city": "Positano",
     "confidence_score": 0.94,
@@ -50,7 +51,8 @@ Example output:
     "confidence_score": 0.76,
     "reason": "Lake Como's village ferry network and lakeside promenades are freely enjoyed at mid-range — boutique hotels here are affordable outside peak season. The lake's natural scenery provides a romantic backdrop perfectly aligned with the nature and relaxation styles, and 2 days here rounds out a varied honeymoon itinerary."
   }
-]
+  ]
+}
 
 Note what makes this example correct:
 - Rome was excluded — it is not the best fit for relaxation or honeymoon on a 6-day trip due to crowds and pace.
@@ -58,13 +60,15 @@ Note what makes this example correct:
 - Reasons explicitly name the romantic atmosphere, budget accessibility, duration logic, and style alignment.
 
 You must respond with VALID JSON ONLY in this exact format:
-[
+{
+  "recommendations": [
   {
     "city": "<city_name>",
     "confidence_score": <float between 0 and 1>,
     "reason": "<explanation that explicitly mentions why this city fits the given budget, duration, and travel style>"
   }
-]
+  ]
+}
 
 Rules:
 - Return exactly {{ city_count | default(3) }} cities
