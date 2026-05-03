@@ -38,7 +38,17 @@
     }
 
     /*  style chip toggle  */
-    function toggleStyle(el) { el.classList.toggle('selected'); }
+    function toggleStyle(el) { 
+      const container = el.closest('.style-chips');
+      if(!container) return;
+      el.classList.toggle('selected');
+      updateStyleAvailability(container.id);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateStyleAvailability('styleChips');
+      updateStyleAvailability('compareStyleChips');
+    });
 
     function getStyles(chipContainerId) {
       return [...document.querySelectorAll('#' + chipContainerId + ' .style-chip.selected')]
@@ -73,6 +83,45 @@
       aggregate:  { emoji: '\u{1F3AF}', label: 'Aggregate'  },
       itinerary:  { emoji: '\u{1F4C5}', label: 'Itinerary'  },
     };
+
+    const STYLE_CONFLICTS = {
+      solo: ['family', 'honeymoon'],
+      family: ['solo', 'honeymoon'],
+      honeymoon: ['solo', 'family'],
+    }
+
+    function updateStyleAvailability(containerId) {
+      const container = document.getElementById(containerId);
+      if(!container) return;
+
+      const chips = [...container.querySelectorAll('.style-chip')];
+      const selected = chips
+        .filter(chip => chip.classList.contains('selected'))
+        .map(chip => chip.dataset.style);
+
+      const blocked = new Set();
+      selected.forEach(style => {
+        (STYLE_CONFLICTS[style] || []).forEach(conflict => blocked.add(conflict));
+      });
+
+      chips.forEach(chip => {
+        const style = chip.dataset.style;
+        const isSelected = chip.classList.contains('selected');
+        const shouldHide = blocked.has(style) && !isSelected;
+
+        chip.classList.toggle('hidden', shouldHide);
+        chip.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+      });
+    }
+
+    function syncStyleChips(containerId, selectedStyles) {
+      const chips = [...document.querySelectorAll('#' + containerId + ' .style-chip')];
+      chips.forEach(chip => {
+        const s = chip.dataset.style;
+        chip.classList.toggle('selected', (selectedStyles || []).includes(s));
+      });
+      updateStyleAvailability(containerId);
+    }
 
     let _stepTimer = null;
     function startSteps(styles) {
@@ -144,6 +193,10 @@
         if (!res.ok) throw new Error(extractDetail(data));
         _lastPlan = data;
         renderResults(data);
+        if (Array.isArray(data.style_warnings) && data.style_warnings.length) {
+          showToast(data.style_warnings.join(' '));
+        }
+        ['styleChips', 'compareStyleChips'].forEach(id => syncStyleChips(id, data.travel_styles || []));
       } catch(e) {
         showError('errorBanner', e.message);
       } finally {

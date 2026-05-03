@@ -197,6 +197,7 @@ class PlanResponse(BaseModel):
     duration: int
     city_count: int
     travel_styles: list[str]
+    style_warnings: list[str] = Field(default_factory=list)
     recommendations: list[dict]
     itineraries: list[dict]
     agent_details: dict
