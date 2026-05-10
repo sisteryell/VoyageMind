@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  voyagemind:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OPENAI_TIMEOUT: ${OPENAI_TIMEOUT:-60}
+      OPENAI_MAX_RETRIES: ${OPENAI_MAX_RETRIES:-3}
+      APP_NAME: ${APP_NAME:-VoyageMind}
+      APP_VERSION: ${APP_VERSION:-2.0.0}
+      DEBUG: ${DEBUG:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
