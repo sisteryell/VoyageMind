@@ -10,7 +10,7 @@ router = APIRouter()
 async def home_controller(request: Request):
     return await home(request)
 
-@router.get("/health")
+@router.api_route("/health", methods=["GET", "HEAD"])
 async def health_controller():
     return await health()
 
