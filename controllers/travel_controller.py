@@ -21,6 +21,9 @@ async def home(request: Request):
 async def favicon():
     return Response(status_code=204)
 
+async def health():
+    return {"status": "healthy"}
+
 
 async def plan_travel(request: Request, plan_request: PlanRequest):
     country = plan_request.country
