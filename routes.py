@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from controllers.travel_controller import chat, compare_countries, favicon, home, plan_travel
+from controllers.travel_controller import chat, compare_countries, favicon, health, home, plan_travel
 from schemas import ChatRequest, ChatResponse, CompareRequest, PlanRequest, PlanResponse
 
 router = APIRouter()
@@ -9,6 +9,10 @@ router = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def home_controller(request: Request):
     return await home(request)
+
+@router.get("/health")
+async def health_controller():
+    return await health()
 
 @router.get("/favicon.ico", status_code=204)
 async def favicon_controller():
