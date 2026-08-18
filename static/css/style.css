@@ -192,6 +192,13 @@
       gap: .5rem;
     }
 
+    .style-hint {
+      margin-top: .45rem;
+      font-size: .78rem;
+      color: var(--muted);
+      opacity: 0.9;
+    }
+
     .style-chip {
       padding: .4rem .85rem;
       border-radius: 999px;

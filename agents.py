@@ -155,6 +155,12 @@ class NatureAgent(Agent):
     system_prompt_file = "nature/system.txt"
     schema = CityRecommendationList
 
+class GenericAgent(Agent):
+    name = "Generic"
+    prompt_template = "generic/user.txt"
+    system_prompt_file = "generic/system.txt"
+    schema = CityRecommendationList
+
 TRAVEL_STYLE_AGENT_MAP: dict[str, type[Agent]] = {
     "adventure":  AdventureAgent,
     "relaxation": RelaxationAgent,
