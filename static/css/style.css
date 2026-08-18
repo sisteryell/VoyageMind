@@ -658,6 +658,10 @@
       line-height: 1.5;
     }
 
+    .style-chip.hidden {
+      display: none !important;
+    }
+
     /* Chat panel */
     .chat-section {
       display: none;

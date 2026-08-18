@@ -1,5 +1,7 @@
 import asyncio
+
 from agents import AggregatorAgent, ChatAgent, ItineraryAgent, TRAVEL_STYLE_AGENT_MAP
+from travel_constraints import filter_travel_styles, style_warning_message
 
 class TravelModel:
     @staticmethod
@@ -47,19 +49,20 @@ class TravelModel:
             session_id=session_id,
         )
 
+        selected_styles, removed_styles = filter_travel_styles(travel_styles)
+        style_warnings = style_warning_message(removed_styles)
+
+        execution_styles = selected_styles if travel_styles else list(TRAVEL_STYLE_AGENT_MAP.keys())
         selected = (
             {
                 style: TRAVEL_STYLE_AGENT_MAP[style]
-                for style in travel_styles
-                if style in TRAVEL_STYLE_AGENT_MAP
+                for style in execution_styles
             }
-            if travel_styles
-            else TRAVEL_STYLE_AGENT_MAP
         )
 
         style_results = await asyncio.gather(
             *(
-                cls().run(**agent_kwargs, travel_styles=travel_styles)
+                cls().run(**agent_kwargs, travel_styles=execution_styles)
                 for style, cls in selected.items()
             )
         )
@@ -71,7 +74,7 @@ class TravelModel:
 
         final_result = await AggregatorAgent().run(
             **agent_kwargs,
-            travel_styles=travel_styles,
+            travel_styles=execution_styles,
             agent_results=agent_results,
         )
 
@@ -86,7 +89,7 @@ class TravelModel:
                 ItineraryAgent().run(
                     **agent_kwargs,
                     city=rec["city"],
-                    travel_styles=travel_styles,
+                    travel_styles=execution_styles,
                     reason=rec["reason"],
                 )
                 for rec in final_recommendations
@@ -108,7 +111,8 @@ class TravelModel:
             "budget": budget,
             "duration": duration,
             "city_count": city_count,
-            "travel_styles": travel_styles,
+            "travel_styles": selected_styles if travel_styles else [],
+            "style_warnings": style_warnings,
             "recommendations": final_recommendations,
             "itineraries": itineraries,
             "agent_details": agent_details,
@@ -124,11 +128,12 @@ class TravelModel:
         question: str,
         session_id: str,
     ) -> dict:
+        filtered_styles, _ = filter_travel_styles(travel_styles)
         return await ChatAgent().run(
             country=country,
             budget=budget,
             duration=duration,
-            travel_styles=travel_styles,
+            travel_styles=filtered_styles if travel_styles else travel_styles,
             recommendations=recommendations,
             question=question,
             session_id=session_id,
