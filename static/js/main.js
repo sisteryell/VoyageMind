@@ -80,6 +80,7 @@
       culture:    { emoji: '\u{1F3DB}', label: 'Culture'    },
       food:       { emoji: '\u{1F35C}', label: 'Food'       },
       nature:     { emoji: '\u{1F33F}', label: 'Nature'     },
+      generic:    { emoji: '\u{1F9ED}', label: 'Generic'    },
       aggregate:  { emoji: '\u{1F3AF}', label: 'Aggregate'  },
       itinerary:  { emoji: '\u{1F4C5}', label: 'Itinerary'  },
     };
@@ -126,7 +127,7 @@
     let _stepTimer = null;
     function startSteps(styles) {
       // Build the step list: selected style agents + always Aggregate + Itinerary
-      const agentKeys = (styles && styles.length ? styles : Object.keys(STYLE_META).slice(0, 8));
+      const agentKeys = (styles && styles.length ? styles : ['generic']);
       const steps     = [...agentKeys, 'aggregate', 'itinerary'];
 
       // Render pills dynamically
@@ -143,8 +144,8 @@
       let i = 1;
       _stepTimer = setInterval(() => {
         if (i < pills.length) {
-          pills[i - 1].classList.replace('active', 'done');
-          pills[i - 1].classList.replace('active', 'done');
+          pills[i - 1].classList.remove('active');
+          pills[i - 1].classList.add('done');
           pills[i].classList.add('active');
           txt.textContent = i < steps.length - 2
             ? `Running ${STYLE_META[steps[i]]?.label ?? steps[i]} agent\u2026`
@@ -211,11 +212,14 @@
 
       // meta pills
       const meta = document.getElementById('resMeta');
+      const stylePills = (data.travel_styles || []).length
+        ? (data.travel_styles || []).map(s => `<span class="meta-pill">${esc(s)}</span>`).join('')
+        : `<span class="meta-pill">generic mode</span>`;
       meta.innerHTML =
         `<span class="meta-pill">${esc(data.budget)} budget</span>` +
         `<span class="meta-pill">${esc(data.duration)} days</span>` +
         `<span class="meta-pill">${esc(data.city_count || (data.recommendations || []).length)} cities</span>` +
-        (data.travel_styles||[]).map(s => `<span class="meta-pill">${esc(s)}</span>`).join('');
+        stylePills
 
       // rec cards
       const grid = document.getElementById('recGrid');

@@ -1,0 +1,19 @@
+Recommend the TOP {{ city_count | default(3) }} cities in {{ country }} for this traveler.
+
+Traveler constraints:
+- Budget: {{ budget }}
+- Trip length: {{ duration }} days
+- Travel styles: {{ travel_styles | join(', ') if travel_styles else 'none (balanced recommendations requested)' }}
+
+Requirements:
+- Budget must directly influence city choice
+- Duration must directly influence city choice
+- If styles are present, incorporate them as preferences
+- If styles are absent, provide balanced cities suitable for first-time/general travelers
+- Avoid generic "most famous city" picks unless they strongly match constraints
+
+Output checklist:
+- Exactly {{ city_count | default(3) }} unique cities
+- confidence_score from 0 to 1 (prefer 2 decimals)
+- Reasons must mention budget fit, duration fit, and style fit (or balanced fit when no styles)
+- Valid JSON only
