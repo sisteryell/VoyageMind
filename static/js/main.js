@@ -4,6 +4,8 @@
 
     marked.setOptions({ breaks: true, gfm: true });
 
+    const BOOKING_URL = document.body.dataset.bookingUrl || '';
+
     /*  helpers  */
     function esc(s) {
       return String(s ?? '')
@@ -292,6 +294,12 @@
               </div>`;
           }).join('')
         : '';
+
+      document.getElementById('resultsBookingCta').innerHTML = `
+        <a class="btn booking-btn"
+           href="${esc(BOOKING_URL)}"
+           target="_blank"
+           rel="noopener noreferrer">Book travel packages &#8599;</a>`;
 
       document.getElementById('resultsSection').classList.add('visible');
       document.getElementById('chatSection').classList.add('visible');

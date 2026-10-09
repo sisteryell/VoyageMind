@@ -14,3 +14,4 @@ services:
       APP_VERSION: ${APP_VERSION:-2.0.0}
       DEBUG: ${DEBUG:-false}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BOOKING_URL: ${BOOKING_URL}
