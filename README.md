@@ -107,6 +107,7 @@ APP_NAME = VoyageMind
 APP_VERSION = 2.0.0
 DEBUG = false
 LOG_LEVEL = INFO
+BOOKING_URL = https://your-booking-service.example/holidays
 ```
 
 **5. Run the app**
@@ -285,6 +286,7 @@ Compare two countries for a given travel style. Returns two full plan objects (s
 | `APP_VERSION` | ❌ | 2.0.0 | Application version |
 | `DEBUG` | ❌ | false | Debug mode (keep false in production) |
 | `LOG_LEVEL` | ❌ | INFO | Logging level |
+| `BOOKING_URL` | ✅ | — | External travel-package booking URL configured in `.env` |
 
 ---
 

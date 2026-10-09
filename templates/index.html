@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 
-<body>
+<body data-booking-url="{{ booking_url }}">
   <div class="wrapper">
 
     <!-- === Hero === -->
@@ -27,6 +27,10 @@
       <div class="hero-icon">&#127758;</div>
       <h1>VoyageMind</h1>
       <p>AI-powered multi-agent travel planner</p>
+      <a class="btn booking-btn"
+         href="{{ booking_url }}"
+         target="_blank"
+         rel="noopener noreferrer">Book travel packages &#8599;</a>
     </header>
 
     <!-- === Tab bar === -->
@@ -107,6 +111,8 @@
         <div class="itinerary-section" id="itinerarySection"></div>
 
         <div class="details-section" id="detailsSection"></div>
+
+        <div class="results-booking" id="resultsBookingCta"></div>
 
         <div class="chat-section" id="chatSection">
           <div class="chat-header">&#128172; Ask a follow-up question</div>
@@ -190,4 +196,3 @@
   <script src="/static/js/main.js"></script>
 </body>
 </html>
-

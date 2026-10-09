@@ -6,6 +6,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 
+from config import get_settings
 from models.travel_model import TravelModel
 from schemas import ChatRequest, ChatResponse, CompareRequest, PlanRequest, PlanResponse
 
@@ -15,7 +16,10 @@ travel_model = TravelModel()
 
 
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "booking_url": get_settings().booking_url},
+    )
 
 
 async def favicon():
